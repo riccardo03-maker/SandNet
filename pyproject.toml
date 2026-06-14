@@ -1,0 +1,59 @@
+[project]
+name = 'SandNet'
+version = '0.0.1'
+authors = [
+  { name='Riccardo Grandicelli', email='riccardograndicelli03@gmail.com' },
+]
+description = 'Implementation of the Bak–Tang–Wiesenfeld sandpile model on complex network topologies'
+readme = 'README.md'
+requires-python = '>=3'
+license = {text = 'MIT'}
+keywords = [
+  'self-organized-criticality',
+  'complex-network',
+]
+maintainers = [
+  { name='Riccardo Grandicelli', email='riccardograndicelli03@gmail.com' },
+]
+classifiers = [
+  'Natural Language :: English',
+  'Operating System :: MacOS :: MacOS X',
+  'Operating System :: POSIX',
+  'Operating System :: POSIX :: Linux',
+  'Operating System :: Microsoft :: Windows',
+  'Programming Language :: Python',
+  'Programming Language :: Python :: 3',
+  'Programming Language :: Python :: 3.5',
+  'Programming Language :: Python :: 3.6',
+  'Programming Language :: Python :: 3.7',
+  'Programming Language :: Python :: 3.8',
+  'Programming Language :: Python :: 3.9',
+  'Programming Language :: Python :: 3.10',
+  'Programming Language :: Python :: 3.11',
+  'Programming Language :: Python :: Implementation :: CPython',
+  'Programming Language :: Python :: Implementation :: PyPy'
+]
+dependencies = [
+
+]
+
+[project.scripts]
+SandNet = "SandNet.__main__:main"
+
+[project.optional-dependencies]
+dev = [
+  'flake8',
+  'pytest',
+  'codecov',
+  'pytest-cov',
+]
+
+[project.urls]
+'Homepage' = 'https://github.com/riccardo03-maker/SandNet'
+'Bug Tracker' = 'https://github.com/riccardo03-maker/SandNet/issues'
+
+[build-system]
+requires = [
+  'setuptools>=42',
+]
+build-backend = 'setuptools.build_meta'
