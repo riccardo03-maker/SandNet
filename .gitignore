@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+#Notebook with code trials
+trials.ipynb
+
+#VSCode
+.vscode/
