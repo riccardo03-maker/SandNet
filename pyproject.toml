@@ -34,7 +34,8 @@ classifiers = [
   'Programming Language :: Python :: Implementation :: PyPy'
 ]
 dependencies = [
-
+    'numpy',
+    'networkx'
 ]
 
 [project.scripts]
