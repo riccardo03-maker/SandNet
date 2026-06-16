@@ -1,8 +1,14 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import SandNet
 import networkx as nx
 import numpy as np
 import pytest
 from collections import Counter
+
+__author__=['Riccardo Grandicelli']
+__email__=['riccardograndicelli03@gmail.com']
 
 # Testing initialization of SandNet.Model
 
@@ -92,3 +98,18 @@ def test_incorrect_rule_input():
     '''
     with pytest.raises(ValueError):
         model = SandNet.Model(threshold_rule="not_standard_string")
+
+
+def test_index_setting():
+    '''
+    Tests the correct setting of indexes to the network nodes
+
+    GIVEN: I am initializing a SandNet.Model object
+    WHEN: I give as input a network with N nodes
+    THEN: the node indexes range from 0 to N-1
+    '''
+    model = SandNet.Model(N=6)
+    indexes = list(dict(model.network.nodes(data="index", default=0)).values()) #gives a list of all the index values
+
+    #compare using collections.Counter to have comparison independent from order
+    assert(Counter(indexes) == Counter(range(36)))

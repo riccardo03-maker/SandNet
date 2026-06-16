@@ -70,6 +70,26 @@ def _set_grains(network : nx.Graph) -> nx.Graph:
     return network
 
 
+def _set_index(network: nx.Graph) -> nx.Graph:
+    '''
+    Set a progressive index for each node in the network 
+
+    Parameters
+    ----------
+        network: nx.Graph
+            The newtork structure of the sandpile model
+
+    Returns
+    -------
+        network: nx.Graph
+            The initial network but with indexes set
+    '''
+    nodes = list(network.nodes)
+    for i, node in enumerate(nodes):
+            network.nodes[node]["index"] = i
+    return network
+
+
 class Model:
     '''
     This class defines a sandpile model on a network structure
@@ -100,6 +120,9 @@ class Model:
         else:
             self.network = network
 
-        #set nodes threshold
         self.network = _set_threshold(self.network, threshold_rule, threshold)
         self.network = _set_grains(self.network)
+
+        #set an integer index to each node to identify it (will be useful during the evolution phase)
+        self.network = _set_index(self.network)
+        
