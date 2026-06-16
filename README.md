@@ -1,6 +1,6 @@
 | **Authors**  | **Project** |  **Documentation** | **Build Status** | **Code Quality** | **Coverage** |
 |:------------:|:-----------:|:------------------:|:----------------:|:----------------:|:------------:|
-| [**R. Grandicelli**](https://github.com/riccardo03-maker)| **SandNet** | **TODO** | **TODO** | **TODO** | **TODO** |
+| [**R. Grandicelli**](https://github.com/riccardo03-maker)| **SandNet** | [![SandNet Docs CI](https://github.com/riccardo03-maker/SandNet/actions/workflows/docs.yml/badge.svg)](https://github.com/riccardo03-maker/SandNet/actions/workflows/docs.yml) | [![SandNet CI](https://github.com/riccardo03-maker/SandNet/actions/workflows/python.yml/badge.svg)](https://github.com/riccardo03-maker/SandNet/actions/workflows/python.yml) | **TODO** | **TODO** |
 
 [![GitHub pull-requests](https://img.shields.io/github/issues-pr/riccardo03-maker/SandNet.svg?style=plastic)](https://github.com/riccardo03-maker/SandNet/pulls)
 [![GitHub issues](https://img.shields.io/github/issues/riccardo03-maker/SandNet.svg?style=plastic)](https://github.com/riccardo03-maker/SandNet/issues)
