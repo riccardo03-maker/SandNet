@@ -113,3 +113,96 @@ def test_index_setting():
 
     #compare using collections.Counter to have comparison independent from order
     assert(Counter(indexes) == Counter(range(36)))
+
+#Testing selection node by index
+
+def test_generic_index_selection():
+    '''
+    Tests the correct extraction of the threshold of a network node starting from the index
+
+    GIVEN: a sandpile model on a network of 4 nodes with one central node of degree 3, with a threshold equal to the degree of each node
+    WHEN: I extract the threshold of the nodes from their indexes
+    THEN: the retrieved threshold is 3 for the central node and 1 for the others
+    '''
+    G = nx.Graph()
+    G.add_nodes_from(range(4))
+    G.add_edges_from([(0, 1), (1, 2), (1, 3)])
+    model = SandNet.Model(network=G, threshold_rule='degree')
+    central_node_index = G.nodes[1]["index"]
+    not_central_node_index = G.nodes[2]["index"]
+
+    assert(model.select_node_by_index(central_node_index, feature = "threshold") == 3)
+    assert(model.select_node_by_index(not_central_node_index, feature = "threshold") == 1)
+
+
+def test_wrong_index_input():
+    '''
+    Tests the raise of error when the input index is higher than the number of nodes in the network
+
+    GIVEN: a classical sandpile model with a square grid network 5x5
+    WHEN: the input value for the index does not correspond to any node
+    THEN: the code raises a ValueError
+    '''
+    model=SandNet.Model()
+    with pytest.raises(ValueError):
+        model.select_node_by_index(25, "threshold")
+
+
+def test_wrong_feature_input():
+    '''
+    Tests the raise of error when the input feature is not defined
+
+    GIVEN: a classical sandpile model with a square grid network 5x5
+    WHEN: the input value for the feature does not correspond to a feature of the selected node
+    THEN: the code raises a ValueError
+    '''
+    model=SandNet.Model()
+    with pytest.raises(ValueError):
+        model.select_node_by_index(10, "not_standard_feature")
+
+
+#Testing selection node by degree
+
+
+def test_generic_degree_selection():
+    '''
+    Tests the correct selection of a network node starting from the degree
+
+    GIVEN: a network of 4 nodes with one central node of degree 3
+    WHEN: I select a node with degree 3
+    THEN: I obtain the index of the central node of the network (the only one with degree 3)
+    '''
+    G = nx.Graph()
+    G.add_nodes_from(range(4))
+    G.add_edges_from([(0, 1), (1, 2), (1, 3)])
+    model = SandNet.Model(network=G, threshold_rule='degree')
+    correct_index = model.network.nodes[1]["index"] #get the index of the node of degree 3 for the test
+
+    retrieved_index = model.select_nodes_by_degree(3)
+    assert(retrieved_index==correct_index)
+
+
+def test_wrong_degree_input():
+    '''
+    Tests the raise of error when no node in the network has the input degree and the parameter raises is True
+
+    GIVEN: a classical sandpile model with a square grid network
+    WHEN: the input value for the degree does not match the degree of any node and the parameter raises is True
+    THEN: the code raises a ValueError
+    '''
+    model=SandNet.Model()
+    with pytest.raises(ValueError):
+        model.select_nodes_by_degree(1)
+
+
+def test_degree_empty_list():
+    '''
+    Tests the return of an empty list when no node in the network has the input degree and the parameter raises is False
+
+    GIVEN: a classical sandpile model with a square grid network
+    WHEN: the input value for the degree does not match the degree of any node and the parameter raises is False
+    THEN: the code returns an empty list
+    '''
+    model=SandNet.Model()
+    nodes = model.select_nodes_by_degree(1, raises=False)
+    assert(not nodes)

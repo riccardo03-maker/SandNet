@@ -125,4 +125,89 @@ class Model:
 
         #set an integer index to each node to identify it (will be useful during the evolution phase)
         self.network = _set_index(self.network)
+    
+
+    def select_node_by_index(self, index: int, feature: str):
+        '''
+        Returns a node feature starting from its index
+
+        Given a sandpile model with a network structure, where each node has an attribute called index
+        (choosen during the initialization), this function allows to select a node feature starting from the index
         
+        Parameters
+        ----------
+            index: int
+                The index of the node to be selected
+            feature: {'threshold', 'grains'}
+                The desired output feature of the selected node
+        Returns
+        -------
+            node:
+                The selected feature for the node corresponding to the index.
+                Note: there is no specific type for the output, since the output type is given by the feature selected
+        Raises
+        -------
+            ValueError:
+                If there is no node with the input index
+            ValueErrore:
+                If the input feature is not defined for that node
+        '''
+        if(index>=len(self.network.nodes)):
+            raise ValueError("No node with the selected index")
+
+        if(feature in ['threshold', 'grains']):
+            #returns a list with one dictionary for each node, where the keys are the features
+            #and the values are the values of those features
+            node_features = list(dict(self.network.nodes(data=True)).values())
+
+            #the next function is used so that 'attribute' is an integer instead of a list of a single integer
+            attribute = next(node[feature] for node in node_features if node["index"] == index)
+            return attribute
+        else:
+            raise ValueError("Selected feature does not exist")
+
+
+    def select_nodes_by_degree(self, degree: int, raises = True):
+        '''
+        Select all network nodes with a certain degree
+
+        Given a sandpile model with a network structure, this function allows to select a node
+        starting from its degree. If more than one node has the same degree, the function will return a list
+        of nodes with the selected degree.
+        
+        Parameters
+        ----------
+            degree: int
+                The degree of the node to be selected
+            raises: boolean (default: True)
+                Defines the behaviour when no node has the selected degree. If True, it raises a ValueError (see below).
+                If False, it just returns an empty list
+
+        Returns
+        -------
+            node_index: int
+                The index (or list of indexes) of the node(s) with the selected degree.
+                The returned index can be used as input for the function select_node_by_index to extract a certain feature
+        Raises
+        -------
+            ValueError:
+                If there is no node with the selected degree
+                Note: if the raises parameter is False, this error is never raised. This is useful since then
+                the function can also be used to check if there are no nodes with a certain degree
+        '''
+        #returns a list with one dictionary for each node, where the keys are the features
+        #and the values are the values of those features
+        node_features = list(dict(self.network.nodes(data=True)).values())
+
+        degree_list = list(self.network.degree)
+        indexes = [node["index"] for i, node in enumerate(node_features) if degree_list[i][1] == degree]
+
+        #transform a list into an integer if it has only one element,
+        #otherwise the function would return a list of one element
+        if(len(indexes) == 1):
+            indexes = indexes[0]
+
+        if raises and not indexes:
+            raise ValueError("No node with the selected degree")
+        return indexes
+                     
