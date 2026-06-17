@@ -125,7 +125,12 @@ class Model:
 
         #set an integer index to each node to identify it (will be useful during the evolution phase)
         self.network = _set_index(self.network)
-    
+
+        #define now a variable to measure avalanche size during the evolution (see _avalanche method)
+        self.avalanche_size = 0
+        #and a list with the sizes of all avalanches
+        self.avalanche_sizes_collector = []
+        
 
     def select_node_by_index(self, index: int):
         '''
@@ -201,4 +206,109 @@ class Model:
             raise ValueError("No node with the selected degree")
         return indexes
         
-                     
+    
+    def evolve(self, steps: int, evolve_mode = 'random', position: int = None, seed = 42):
+        '''
+        Evolves the sandpile model for a certain number of steps
+
+        Parameters
+        ----------
+            steps: int
+                The number of steps of evolution of the model (corresponds to the total number of grains added)
+            evolve_mode: {'fixed', 'random'}
+                Sets how the new grains are added
+                    fixed: all grains are added in the same position, choosen according to the position parameter (see below)
+                    random: grains at each step are added in random positions
+            position: int (default: None)
+                The index of the node at which new grains are added.
+                If the evolve_mode is 'random', this parameter is ignored.
+                If the evolve mode is 'fixed' and position is None, one random position is selected
+            seed: int (default: 42)
+                The seed used for random number generation
+        Raises
+        -------
+            ValueError:
+                If the evolve mode is not an accepted one
+            ValueError:
+                If the position selected does not exist
+        '''
+        np.random.seed(seed)
+
+        #for both 'fixed' and 'random' evolutions, we create a list of indexes of nodes
+        #where the grain will be added at each step.
+        #So in the first case we will have a list of the length of the steps with always the same element.
+        #This is useful to write the same code in both the evolution modes
+
+        if(evolve_mode == 'fixed'):
+            if(position >= len(self.network.nodes)):
+                raise ValueError("Position selected does not exist")
+            if(position is None):
+                position = np.random.randint(0, len(self.network.nodes))
+            grain_positions = [position] * steps
+        elif(evolve_mode == 'random'):
+            grain_positions = np.random.randint(0, len(self.network.nodes), size = steps)
+        else:
+            raise ValueError("Invalid evolution rule")
+        
+        for index in grain_positions:
+            node = self.select_node_by_index(index)
+            self.network.nodes[node]["grains"] += 1
+            if(self.network.nodes[node]["grains"] >= self.network.nodes[node]["threshold"]):
+                self._avalanche(node)
+            else:
+                self.avalanche_sizes_collector.append(self.avalanche_size)
+                #avalanche size is 0 if no node toppled
+            
+
+    
+
+    def _avalanche(self, node):
+        '''
+        Computes an avalanche
+
+        When the grains on a node reach the threshold of that node, the node topples. The node loses grains equal to the threshold
+        and these grains are given to the neighbours (one grain for each neighbour). This process can make other nodes topple, generating a cascade process called avalanche
+        If the number of neighbours of the toppling node is 0, the code stops.
+        If the number of neighbours of the toppling node is less than the threshold, one grain is given to each neighbour and the others are lost.
+        If the number of neighbours of the toppling node is higher than the threshold, so that it is not clear to which
+        neighbours the grains should be given
+        
+        Parameters
+        ----------
+            node:
+                The node that is toppling
+                Note: there is no specific type for the output, since the nodes of a nx.Graph can be of any type
+        Raises
+        -------
+            Exception:
+                If the toppling node has no neighbours
+            Exception:
+                If the toppling node has a number of neighbours higher than its threshold
+            RecursionError:
+                If the system remains trapped in an infinite loop given by an infinite size avalanche
+        '''
+        neighbours = list(self.network[node])
+        if not neighbours:
+            raise Exception("Grains added on a node with no neighbours")
+        if(len(neighbours) > self.network.nodes[node]["threshold"]):
+            raise Exception("Number of neighbours higher than threshold")
+        
+        #avalanche_size is not a local variable because _avalanche method is recursive, so it would
+        #be resetted to 0 at each call of the method
+        if(self.avalanche_size >= 5*len(self.network.nodes)):
+            raise RecursionError("Avalanche of infinite size: system trapped in a cycle")
+
+        self.avalanche_size += 1
+
+        self.network.nodes[node]["grains"] -= self.network.nodes[node]["threshold"]
+        
+        for neighbour in neighbours:
+            self.network.nodes[neighbour]["grains"] += 1
+            if(self.network.nodes[neighbour]["grains"] >= self.network.nodes[neighbour]["threshold"]):
+                self._avalanche(neighbour)
+            #we can use the recursion because of the Abelian property of sandpile model: avalanche dynamics
+            #does not depend on the order of topplings
+
+        self.avalanche_sizes_collector.append(self.avalanche_size)
+        self.avalanche_size = 0
+        
