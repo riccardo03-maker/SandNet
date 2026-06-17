@@ -118,21 +118,26 @@ def test_index_setting():
 
 def test_generic_index_selection():
     '''
-    Tests the correct extraction of the threshold of a network node starting from the index
+    Tests the correct extraction of a network node starting from the index
 
-    GIVEN: a sandpile model on a network of 4 nodes with one central node of degree 3, with a threshold equal to the degree of each node
-    WHEN: I extract the threshold of the nodes from their indexes
-    THEN: the retrieved threshold is 3 for the central node and 1 for the others
+    GIVEN: a sandpile model on a network of 3 nodes with heterogeneous types
+    WHEN: I extract the nodes from their indexes
+    THEN: I retrieve the correct node values
     '''
     G = nx.Graph()
-    G.add_nodes_from(range(4))
-    G.add_edges_from([(0, 1), (1, 2), (1, 3)])
-    model = SandNet.Model(network=G, threshold_rule='degree')
-    central_node_index = G.nodes[1]["index"]
-    not_central_node_index = G.nodes[2]["index"]
 
-    assert(model.select_node_by_index(central_node_index, feature = "threshold") == 3)
-    assert(model.select_node_by_index(not_central_node_index, feature = "threshold") == 1)
+    #add nodes with heterogeneous types
+    G.add_node(1)
+    G.add_node("string")
+    G.add_node((6, "tuple"))
+
+    model = SandNet.Model(G)
+    #indexes are assigned following node order, so node 1 corresponds to index 0,
+    #node "string" to index 1 and so on
+
+    assert(model.select_node_by_index(0) == 1)
+    assert(model.select_node_by_index(1) == "string")
+    assert(model.select_node_by_index(2) == (6, "tuple"))
 
 
 def test_wrong_index_input():
@@ -145,20 +150,7 @@ def test_wrong_index_input():
     '''
     model=SandNet.Model()
     with pytest.raises(ValueError):
-        model.select_node_by_index(25, "threshold")
-
-
-def test_wrong_feature_input():
-    '''
-    Tests the raise of error when the input feature is not defined
-
-    GIVEN: a classical sandpile model with a square grid network 5x5
-    WHEN: the input value for the feature does not correspond to a feature of the selected node
-    THEN: the code raises a ValueError
-    '''
-    model=SandNet.Model()
-    with pytest.raises(ValueError):
-        model.select_node_by_index(10, "not_standard_feature")
+        model.select_node_by_index(25)
 
 
 #Testing selection node by degree
@@ -206,3 +198,4 @@ def test_degree_empty_list():
     model=SandNet.Model()
     nodes = model.select_nodes_by_degree(1, raises=False)
     assert(not nodes)
+

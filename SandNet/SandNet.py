@@ -127,47 +127,37 @@ class Model:
         self.network = _set_index(self.network)
     
 
-    def select_node_by_index(self, index: int, feature: str):
+    def select_node_by_index(self, index: int):
         '''
-        Returns a node feature starting from its index
+        Returns a network node starting from its index
 
         Given a sandpile model with a network structure, where each node has an attribute called index
-        (choosen during the initialization), this function allows to select a node feature starting from the index
+        (choosen during the initialization), this function allows to select a node starting from the index
         
         Parameters
         ----------
             index: int
                 The index of the node to be selected
-            feature: {'threshold', 'grains'}
-                The desired output feature of the selected node
         Returns
         -------
             node:
-                The selected feature for the node corresponding to the index.
-                Note: there is no specific type for the output, since the output type is given by the feature selected
+                The node corresponding to the index.
+                Note: there is no specific type for the output, since the nodes of a nx.Graph can be of any type
         Raises
         -------
             ValueError:
                 If there is no node with the input index
-            ValueErrore:
-                If the input feature is not defined for that node
         '''
         if(index>=len(self.network.nodes)):
             raise ValueError("No node with the selected index")
 
-        if(feature in ['threshold', 'grains']):
-            #returns a list with one dictionary for each node, where the keys are the features
-            #and the values are the values of those features
-            node_features = list(dict(self.network.nodes(data=True)).values())
-
-            #the next function is used so that 'attribute' is an integer instead of a list of a single integer
-            attribute = next(node[feature] for node in node_features if node["index"] == index)
-            return attribute
-        else:
-            raise ValueError("Selected feature does not exist")
+        #use the next function because we have only one node for each index, so we can stop the search
+        #at the first node we find with the correct index
+        node = next(node for node in list(self.network.nodes) if self.network.nodes[node]["index"] == index)
+        return node
 
 
-    def select_nodes_by_degree(self, degree: int, raises = True):
+    def select_nodes_by_degree(self, degree: int, raises = True) -> int:
         '''
         Select all network nodes with a certain degree
 
@@ -187,7 +177,7 @@ class Model:
         -------
             node_index: int
                 The index (or list of indexes) of the node(s) with the selected degree.
-                The returned index can be used as input for the function select_node_by_index to extract a certain feature
+                The returned index can be used as input for the function select_node_by_index
         Raises
         -------
             ValueError:
@@ -210,4 +200,5 @@ class Model:
         if raises and not indexes:
             raise ValueError("No node with the selected degree")
         return indexes
+        
                      
