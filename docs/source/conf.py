@@ -11,6 +11,8 @@ copyright = '2026, riccardo03-maker'
 author = 'riccardo03-maker'
 release = '0.0.1'
 
+master_doc = 'index'
+
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
@@ -20,15 +22,23 @@ extensions = ['sphinx.ext.autodoc',
   'sphinx.ext.intersphinx',
   'sphinx_rtd_theme',
   'nbsphinx',
-  'IPython.sphinxext.ipython_console_highlighting',]
+  'IPython.sphinxext.ipython_console_highlighting',
+]
 
 templates_path = ['_templates']
-exclude_patterns = []
+exclude_patterns = ['_build', '**.ipynb_checkpoints']
 
+autodoc_default_options = {
+  "members": True,
+  "undoc-members": True,
+  "private-members": True,
+  "show-inheritance": True,
+}
 
+autodoc_typehints = "description"
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
