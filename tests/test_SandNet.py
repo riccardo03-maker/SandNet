@@ -303,5 +303,44 @@ def test_threshold_lower_than_neighbours():
         model.evolve(2, evolve_mode='fixed', position = 1)
 
 
-#Test using a threshold lower than the number of neighbours
-#Test random and deterministic selection of the grain add point
+def test_threshold_higher_than_neighbours():
+    '''
+    Tests the behaviour of the code when one node topples and it has a threshold higher than the number of neighbours,
+    so some grains are lost (only one grain is given to each neighbour)
+
+    GIVEN: a sandpile model on a network of four nodes, with one central node connected to all the others, and 
+    a fixed threshold height of 2
+    WHEN: I evolve for 2 steps, adding all grains to one of the non-central nodes
+    THEN: at the second step the node topples, and since the number of neighbours is lower than the threshold,
+    the total number of grains in the system after the avalanche is 1
+    '''
+    G = nx.Graph()
+    G.add_nodes_from(range(4))
+    G.add_edges_from([(0,1), (1, 2), (1, 3)])
+    model = SandNet.Model(G, threshold_rule='fixed', threshold=2)
+
+    model.evolve(2, evolve_mode='fixed', position = 2)
+    assert(model.network.nodes[0]["grains"] + model.network.nodes[1]["grains"] + model.network.nodes[2]["grains"] 
+           + model.network.nodes[3]["grains"] == 1)
+
+
+def test_avalanche_size_calculation():
+    '''
+    Tests the correct calculation of avalanche size history
+
+    GIVEN: a 3x3 grid network with a threshold of 4 for each node
+    WHEN: I evolve for 16 steps, adding all grains to the central node
+    THEN: I have an avalanche of size 1 at step 4, 8 and 12, an avalanche of size 6 at step 16, and avalanches
+    of size 0 for all the other steps
+    '''
+    model = SandNet.Model(N=3)
+    model.evolve(16, evolve_mode='fixed', position=model.network.nodes[(1, 1)]["index"])
+    #nodes in a 2d square grid created with the grid_2d_graph function are named using tuples of 2 integers
+    #in this case (1,1) represents the center of the grid
+    #see networkx documentation for better explanation
+
+    assert(model.avalanche_sizes_collector[3] == 1) #avalanche_size_collector[N-1] corresponds to step N
+    assert(model.avalanche_sizes_collector[7] == 1)
+    assert(model.avalanche_sizes_collector[11] == 1)
+    assert(model.avalanche_sizes_collector[4] == 0)
+    assert(model.avalanche_sizes_collector[15] == 6)

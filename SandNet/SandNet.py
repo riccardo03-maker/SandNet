@@ -255,12 +255,9 @@ class Model:
             self.network.nodes[node]["grains"] += 1
             if(self.network.nodes[node]["grains"] >= self.network.nodes[node]["threshold"]):
                 self._avalanche(node)
-            else:
-                self.avalanche_sizes_collector.append(self.avalanche_size)
-                #avalanche size is 0 if no node toppled
+            self.avalanche_sizes_collector.append(self.avalanche_size) #avalanche size is 0 if no node toppled
+            self.avalanche_size = 0
             
-
-    
 
     def _avalanche(self, node):
         '''
@@ -293,11 +290,11 @@ class Model:
         if(len(neighbours) > self.network.nodes[node]["threshold"]):
             raise Exception("Number of neighbours higher than threshold")
         
-        #avalanche_size is not a local variable because _avalanche method is recursive, so it would
-        #be resetted to 0 at each call of the method
         if(self.avalanche_size >= 5*len(self.network.nodes)):
             raise RecursionError("Avalanche of infinite size: system trapped in a cycle")
-
+        
+        #avalanche_size is not a local variable because _avalanche method is recursive, so it would
+        #be resetted to 0 at each call of the method
         self.avalanche_size += 1
 
         self.network.nodes[node]["grains"] -= self.network.nodes[node]["threshold"]
@@ -308,7 +305,4 @@ class Model:
                 self._avalanche(neighbour)
             #we can use the recursion because of the Abelian property of sandpile model: avalanche dynamics
             #does not depend on the order of topplings
-
-        self.avalanche_sizes_collector.append(self.avalanche_size)
-        self.avalanche_size = 0
         
