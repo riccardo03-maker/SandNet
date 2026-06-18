@@ -344,3 +344,21 @@ def test_avalanche_size_calculation():
     assert(model.avalanche_sizes_collector[11] == 1)
     assert(model.avalanche_sizes_collector[4] == 0)
     assert(model.avalanche_sizes_collector[15] == 6)
+
+
+def test_dynamics_on_large_network():
+    '''
+    Tests the correct evolution of the sandpile model on a large 2d grid network for a large number of steps. Since the
+    threshold is fixed to 4 and so some nodes have a threshold lower than their degree, grains can be lost by nodes at the borders,
+    so the system should never remain trapped in an infinite size avalanche
+
+    GIVEN: a sandpile model on a 100 x 100 2d grid network, with threshold fixed to 4
+    WHEN: I evolve for 20000 steps, adding grains in random positions
+    THEN: the code must never raise an error
+
+    Note: In this test we just want to verify that the code reaches its end, without testing the results, since we
+    don't have any property that can be tested properly for large networks
+    '''
+    model = SandNet.Model(N = 100)
+    model.evolve(20000)
+    assert True

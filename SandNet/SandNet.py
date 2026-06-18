@@ -3,6 +3,7 @@
 
 import numpy as np
 import networkx as nx
+import sys
 
 __author__=['Riccardo Grandicelli']
 __email__=['riccardograndicelli03@gmail.com']
@@ -250,6 +251,14 @@ class Model:
         else:
             raise ValueError("Invalid evolution rule")
         
+        #Python has a default recursion limit of 1000. If more than 1000 functions are called at the same time,
+        #Python gives a RecursionError. Since we can have very large avalanches for very large networks, we need
+        #to increase this limit. So, if we have a network of less than 500 nodes we don't modify this limit, while if
+        #we have more nodes we increase the limit to two times the number of nodes. If an avalanche is larger than this value,
+        #it is reasonable to believe that the network is trapped into a loop, so then it is correct to raise a RecursionError
+        if(len(self.network.nodes) > 500):
+            sys.setrecursionlimit(2 * len(self.network.nodes))
+        
         for index in grain_positions:
             node = self.select_node_by_index(index)
             self.network.nodes[node]["grains"] += 1
@@ -257,6 +266,9 @@ class Model:
                 self._avalanche(node)
             self.avalanche_sizes_collector.append(self.avalanche_size) #avalanche size is 0 if no node toppled
             self.avalanche_size = 0
+        
+        #set the original recursion limit in case the size of the network is changed in successive calls of this function
+        sys.setrecursionlimit(1000)
             
 
     def _avalanche(self, node):
@@ -281,17 +293,15 @@ class Model:
                 If the toppling node has no neighbours
             Exception:
                 If the toppling node has a number of neighbours higher than its threshold
-            RecursionError:
-                If the system remains trapped in an infinite loop given by an infinite size avalanche
+        Note: this function can also raise a RecursionError when the system remains trapped in a loop (i.e. an avalanche
+        of infinite size). However, since the avalanche dynamics is implemented as a recursive function, Python will
+        handle this situation automatically giving a RecursionError, so there is no need to implement it.
         '''
         neighbours = list(self.network[node])
         if not neighbours:
             raise Exception("Grains added on a node with no neighbours")
         if(len(neighbours) > self.network.nodes[node]["threshold"]):
             raise Exception("Number of neighbours higher than threshold")
-        
-        if(self.avalanche_size >= 5*len(self.network.nodes)):
-            raise RecursionError("Avalanche of infinite size: system trapped in a cycle")
         
         #avalanche_size is not a local variable because _avalanche method is recursive, so it would
         #be resetted to 0 at each call of the method
@@ -305,4 +315,3 @@ class Model:
                 self._avalanche(neighbour)
             #we can use the recursion because of the Abelian property of sandpile model: avalanche dynamics
             #does not depend on the order of topplings
-        
