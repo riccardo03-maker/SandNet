@@ -50,7 +50,7 @@ def _set_threshold(network : nx.Graph, threshold_rule: str, threshold: int) -> n
     return network
 
 
-def _set_grains(network : nx.Graph) -> nx.Graph:
+def _set_grains(network : nx.Graph, initial_grains : str) -> nx.Graph:
     '''
     Set the initial number of grains of sand (0 for each node) 
 
@@ -58,16 +58,24 @@ def _set_grains(network : nx.Graph) -> nx.Graph:
     ----------
         network: nx.Graph
             The newtork structure of the sandpile model
-
+        initial_grains: {'zero', 'random'}
+            Selects how the initial number of grains is chosen:
+                zero: all nodes have 0 grains at the beginning
+                random: the initial number of grains for each node is a random integer between 0 and the threshold of the node minus one
     Returns
     -------
         network: nx.Graph
             The initial network but with initial number of grains set
     '''
-
     nodes = list(network.nodes)
-    for node in nodes:
+    if(initial_grains == 'zero'):    
+        for node in nodes:
             network.nodes[node]["grains"] = 0
+    elif(initial_grains == 'random'):
+        for node in nodes:
+            network.nodes[node]["grains"] = np.random.randint(0, network.nodes[node]["threshold"])
+    else:
+        raise ValueError("Wrong input for initial_grains")
     return network
 
 
@@ -111,10 +119,14 @@ class Model:
         threshold: int (default: 4)
             The threshold of each node for the 'fixed' rule. If the threshold rule is not 'fixed', 
             this parameter is ignored
+        initial_grains: {'zero', 'random'}
+            Selects how the initial number of grains for each node is chosen:
+                zero: all nodes have 0 grains at the beginning
+                random: the initial number of grains for each node is a random integer between 0 and the threshold of the node minus one
 
     '''
 
-    def __init__(self, network: nx.Graph = None, N = 5, threshold_rule: str = "fixed", threshold: int = 4):
+    def __init__(self, network: nx.Graph = None, N = 5, threshold_rule: str = "fixed", threshold: int = 4, initial_grains: str = 'zero'):
         if network is None:
             #create a 2d square lattice using the right NetworkX function
             self.network = nx.grid_2d_graph(N, N)
@@ -122,7 +134,7 @@ class Model:
             self.network = network
 
         self.network = _set_threshold(self.network, threshold_rule, threshold)
-        self.network = _set_grains(self.network)
+        self.network = _set_grains(self.network, initial_grains)
 
         #set an integer index to each node to identify it (will be useful during the evolution phase)
         self.network = _set_index(self.network)

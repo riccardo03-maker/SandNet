@@ -52,6 +52,37 @@ def test_zero_grains():
     assert(model.network.nodes[np.random.randint(0, 10)]["grains"] == 0)
 
 
+def test_random_grains():
+    '''
+    Tests the correct initialization of the number of grains for each node of the model network to a random number
+    lower than the node threshold
+
+    GIVEN: a sandpile model on a network of four nodes, with a central node connected to all the others and a threshold
+    equal to the degree
+    WHEN: I set a random initial number of grains
+    THEN: every node which is not the central one has an initial number of grains equal to 0
+    (because the threshold is 1 for those nodes)
+    '''
+    G = nx.Graph()
+    G.add_nodes_from(range(4))
+    G.add_edges_from([(0, 1), (1, 2), (1, 3)])
+    model = SandNet.Model(G, threshold_rule= "degree", initial_grains="random")
+
+    assert(model.network.nodes[0]["grains"] == 0)
+    assert(model.network.nodes[2]["grains"] == 0)
+    assert(model.network.nodes[3]["grains"] == 0)
+
+def test_wrong_initial_grains_input():
+    '''
+    Tests the raise of ValueError when the input rule for initial grains is not in the list of possible values
+
+    GIVEN: I am initializing a SandNet.Model object
+    WHEN: the input value for the initial_grains argument is not a standard one
+    THEN: the code raises a ValueError
+    '''
+    with pytest.raises(ValueError):
+        SandNet.Model(initial_grains="not_standard_string")
+
 
 def test_fixed_threshold():
     '''
@@ -90,14 +121,14 @@ def test_degree_threshold():
 
 def test_incorrect_rule_input():
     '''
-    Tests the raise of error when the input threshold rule is not in the list of possible values
+    Tests the raise of ValueError when the input threshold rule is not in the list of possible values
 
     GIVEN: I am initializing a SandNet.Model object
     WHEN: the input value for the threshold_rule argument is not a standard one
     THEN: the code raises a ValueError
     '''
     with pytest.raises(ValueError):
-        model = SandNet.Model(threshold_rule="not_standard_string")
+        SandNet.Model(threshold_rule="not_standard_string")
 
 
 def test_index_setting():
