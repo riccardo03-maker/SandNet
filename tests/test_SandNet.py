@@ -355,6 +355,27 @@ def test_threshold_higher_than_neighbours():
            + model.network.nodes[3]["grains"] == 1)
 
 
+def test_dynamics_on_large_network():
+    '''
+    Tests the correct evolution of the sandpile model on a large 2d grid network for a large number of steps. Since the
+    threshold is fixed to 4 and so some nodes have a threshold lower than their degree, grains can be lost by nodes at the borders,
+    so the system should never remain trapped in an infinite size avalanche
+
+    GIVEN: a sandpile model on a 100 x 100 2d grid network, with threshold fixed to 4
+    WHEN: I evolve for 20000 steps, adding grains in random positions
+    THEN: the code must never raise an error
+
+    Note: In this test we just want to verify that the code reaches its end, without testing the results, since we
+    don't have any property that can be tested properly for large networks
+    '''
+    model = SandNet.Model(N = 100)
+    model.evolve(20000)
+    assert True
+
+
+#Avalanche size and duration calculation
+
+
 def test_avalanche_size_calculation():
     '''
     Tests the correct calculation of avalanche size history
@@ -377,19 +398,23 @@ def test_avalanche_size_calculation():
     assert(model.avalanche_sizes_collector[15] == 6)
 
 
-def test_dynamics_on_large_network():
+def test_avalanche_duration_calculation():
     '''
-    Tests the correct evolution of the sandpile model on a large 2d grid network for a large number of steps. Since the
-    threshold is fixed to 4 and so some nodes have a threshold lower than their degree, grains can be lost by nodes at the borders,
-    so the system should never remain trapped in an infinite size avalanche
+    Tests the correct calculation of avalanche duration history
 
-    GIVEN: a sandpile model on a 100 x 100 2d grid network, with threshold fixed to 4
-    WHEN: I evolve for 20000 steps, adding grains in random positions
-    THEN: the code must never raise an error
-
-    Note: In this test we just want to verify that the code reaches its end, without testing the results, since we
-    don't have any property that can be tested properly for large networks
+    GIVEN: a 3x3 grid network with a threshold of 4 for each node
+    WHEN: I evolve for 16 steps, adding all grains to the central node
+    THEN: I have an avalanche of duration 1 at step 4, 8 and 12, an avalanche of duration 3 at step 16, and avalanches
+    of duration 0 for all the other steps
     '''
-    model = SandNet.Model(N = 100)
-    model.evolve(20000)
-    assert True
+    model = SandNet.Model(N=3)
+    model.evolve(16, evolve_mode='fixed', position=model.network.nodes[(1, 1)]["index"])
+    #nodes in a 2d square grid created with the grid_2d_graph function are named using tuples of 2 integers
+    #in this case (1,1) represents the center of the grid
+    #see networkx documentation for better explanation
+
+    assert(model.avalanche_durations_collector[3] == 1) #avalanche_size_collector[N-1] corresponds to step N
+    assert(model.avalanche_durations_collector[7] == 1)
+    assert(model.avalanche_durations_collector[11] == 1)
+    assert(model.avalanche_durations_collector[4] == 0)
+    assert(model.avalanche_durations_collector[15] == 3)
