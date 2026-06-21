@@ -143,9 +143,17 @@ def plot_avalanche_duration(model: SandNet.Model):
 
 
 if(__name__ == '__main__'):
-    import pickle
-    with open("./saves/test", "rb") as fp:
-        avalanche_sizes = pickle.load(fp)
-    model = SandNet.Model()
-    model.avalanche_sizes_collector = avalanche_sizes
-    plot_avalanche_size(model)
+
+    #execute the model on a 100x100 square grid and plot avalanche size and avalanche duration distributions
+    model = SandNet.Model(N=100)
+    model.evolve(30000)
+
+    tau, xmin, sigma = plot_avalanche_size(model)
+    print("Avalanche size exponent: " + str(tau))
+    print("Error estimate: " + str(sigma))
+    print("Minimum avalanche size used for fit: " + str(xmin))
+
+    tau, xmin, sigma = plot_avalanche_duration(model)
+    print("Avalanche duration exponent: " + str(tau))
+    print("Error estimate: " + str(sigma))
+    print("Minimum avalanche duration used for fit: " + str(xmin))
