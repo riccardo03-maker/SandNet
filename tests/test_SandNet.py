@@ -72,6 +72,7 @@ def test_random_grains():
     assert(model.network.nodes[2]["grains"] == 0)
     assert(model.network.nodes[3]["grains"] == 0)
 
+
 def test_wrong_initial_grains_input():
     '''
     Tests the raise of ValueError when the input rule for initial grains is not in the list of possible values

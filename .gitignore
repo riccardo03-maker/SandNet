@@ -222,3 +222,6 @@ trials.ipynb
 
 #VSCode
 .vscode/
+
+#Directory with some data saved to speed up plot tests
+saves/

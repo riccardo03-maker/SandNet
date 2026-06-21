@@ -5,3 +5,4 @@ Python API
    :maxdepth: 4
 
    SandNet
+   plots
