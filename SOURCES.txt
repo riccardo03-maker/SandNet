@@ -2,3 +2,4 @@ SandNet/SandNet.py
 SandNet/__init__.py
 SandNet/__main__.py
 SandNet/__version__.py
+SandNet/plots.py

@@ -35,7 +35,9 @@ classifiers = [
 ]
 dependencies = [
     'numpy',
-    'networkx'
+    'networkx',
+    'matplotlib',
+    'powerlaw'
 ]
 
 [project.scripts]
