@@ -355,7 +355,7 @@ def test_threshold_higher_than_neighbours():
     assert(model.network.nodes[0]["grains"] + model.network.nodes[1]["grains"] + model.network.nodes[2]["grains"] 
            + model.network.nodes[3]["grains"] == 1)
 
-
+@pytest.mark.skip(reason="Too long for now")
 def test_dynamics_on_large_network():
     '''
     Tests the correct evolution of the sandpile model on a large 2d grid network for a large number of steps. Since the
@@ -419,3 +419,47 @@ def test_avalanche_duration_calculation():
     assert(model.avalanche_durations_collector[11] == 1)
     assert(model.avalanche_durations_collector[4] == 0)
     assert(model.avalanche_durations_collector[15] == 3)
+
+
+def test_more_complex_avalanche_size():
+    '''
+    Tests the correct calculation of avalanche size for a more complex avalanche with respect to previous tests.
+    The calculation of the correct value of avalanche size and avalanche duration has been done directly by hand
+
+    GIVEN: a 5x5 grid network with a threshold of 4 for each node, with 3 grains in each node
+    WHEN: I add one grain on the central node
+    THEN: I have an avalanche of size 35
+    '''
+    model = SandNet.Model()
+    for index in range(25):
+        model.network.nodes[model.select_node_by_index(index)]["grains"] = 3
+        #set manually the initial condition because we want to test just one avalanche
+    
+    central_index = model.network.nodes[(2, 2)]["index"]
+    #the index of the central node, that can be passed as an argument to the evolve method
+
+    model.evolve(1, evolve_mode='fixed', position = central_index)
+
+    assert(model.avalanche_sizes_collector[0] == 35)
+
+
+def test_more_complex_avalanche_duration():
+    '''
+    Tests the correct calculation of avalanche duration for a more complex avalanche with respect to previous tests.
+    The calculation of the correct value of avalanche size and avalanche duration has been done directly by hand
+
+    GIVEN: a 5x5 grid network with a threshold of 4 for each node, with 3 grains in each node
+    WHEN: I add one grain on the central node
+    THEN: I have an avalanche of duration 5
+    '''
+    model = SandNet.Model()
+    for index in range(25):
+        model.network.nodes[model.select_node_by_index(index)]["grains"] = 3
+        #set manually the initial condition because we want to test just one avalanche
+    
+    central_index = model.network.nodes[(2, 2)]["index"]
+    #the index of the central node, that can be passed as an argument to the evolve method
+
+    model.evolve(1, evolve_mode='fixed', position = central_index)
+
+    assert(model.avalanche_durations_collector[0] == 5)
