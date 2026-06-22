@@ -50,7 +50,7 @@ def _set_threshold(network : nx.Graph, threshold_rule: str, threshold: int) -> n
     return network
 
 
-def _set_grains(network : nx.Graph, initial_grains : str) -> nx.Graph:
+def _set_grains(network : nx.Graph, initial_grains : str, seed: int) -> nx.Graph:
     '''
     Set the initial number of grains of sand
 
@@ -62,6 +62,9 @@ def _set_grains(network : nx.Graph, initial_grains : str) -> nx.Graph:
             Selects how the initial number of grains is chosen:
                 zero: all nodes have 0 grains at the beginning
                 random: the initial number of grains for each node is a random integer between 0 and the threshold of the node minus one
+        seed: int
+            The seed for random number generation for the 'random' initial grains mode.
+            If initial grains mode is 'zero', this parameter is ignored
     Returns
     -------
         network: nx.Graph
@@ -72,6 +75,7 @@ def _set_grains(network : nx.Graph, initial_grains : str) -> nx.Graph:
         for node in nodes:
             network.nodes[node]["grains"] = 0
     elif(initial_grains == 'random'):
+        np.random.seed(seed)
         for node in nodes:
             network.nodes[node]["grains"] = np.random.randint(0, network.nodes[node]["threshold"])
     else:
@@ -119,22 +123,28 @@ class Model:
         threshold: int (default: 4)
             The threshold of each node for the 'fixed' rule. If the threshold rule is not 'fixed', 
             this parameter is ignored
-        initial_grains: {'zero', 'random'}
+        initial_grains: {'zero', 'random'} (default: 'zero')
             Selects how the initial number of grains for each node is chosen:
                 zero: all nodes have 0 grains at the beginning
                 random: the initial number of grains for each node is a random integer between 0 and the threshold of the node minus one
-
+        seed: int (default: 42)
+            The seed for random number generation. This seed is used for all the methods of the class that generate
+            random numbers.
     '''
 
-    def __init__(self, network: nx.Graph = None, N = 5, threshold_rule: str = "fixed", threshold: int = 4, initial_grains: str = 'zero'):
+    def __init__(self, network: nx.Graph = None, N = 5, threshold_rule: str = "fixed", threshold: int = 4, initial_grains: str = 'zero', seed: int = 42):
         if network is None:
             #create a 2d square lattice using the right NetworkX function
             self.network = nx.grid_2d_graph(N, N)
         else:
             self.network = network
 
+        self.seed = seed
+        #the seed for random number generation is a parameter of the class, used in all the class methods
+        #that generate random numbers
+
         self.network = _set_threshold(self.network, threshold_rule, threshold)
-        self.network = _set_grains(self.network, initial_grains)
+        self.network = _set_grains(self.network, initial_grains, self.seed)
 
         #set an integer index to each node to identify it (will be useful during the evolution phase)
         self.network = _set_index(self.network)
@@ -220,7 +230,7 @@ class Model:
         return indexes
         
     
-    def evolve(self, steps: int, evolve_mode = 'random', position: int = None, seed = 42):
+    def evolve(self, steps: int, evolve_mode = 'random', position: int = None):
         '''
         Evolves the sandpile model for a certain number of steps
 
@@ -236,8 +246,6 @@ class Model:
                 The index of the node at which new grains are added.
                 If the evolve_mode is 'random', this parameter is ignored.
                 If the evolve mode is 'fixed' and position is None, one random position is selected
-            seed: int (default: 42)
-                The seed used for random number generation
         Raises
         -------
             ValueError:
@@ -245,7 +253,7 @@ class Model:
             ValueError:
                 If the position selected does not exist
         '''
-        np.random.seed(seed)
+        np.random.seed(self.seed)
 
         #for both 'fixed' and 'random' evolutions, we create a list of indexes of nodes
         #where the grain will be added at each step.
