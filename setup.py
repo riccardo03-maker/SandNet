@@ -11,7 +11,7 @@ PACKAGE_VERSION = '0.0.1'
 DESCRIPTION = 'Implementation of the Bak–Tang–Wiesenfeld sandpile model on complex network topologies'
 AUTHOR = 'Riccardo Grandicelli'
 EMAIL = 'riccardograndicelli03@gmail.com'
-REQUIRES_PYTHON = '>=3.8'
+REQUIRES_PYTHON = '>=3.9'
 URL = 'https://github.com/riccardo03-maker/SandNet'
 DOWNLOAD_URL = URL
 

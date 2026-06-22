@@ -6,7 +6,7 @@ authors = [
 ]
 description = 'Implementation of the Bak–Tang–Wiesenfeld sandpile model on complex network topologies'
 readme = 'README.md'
-requires-python = '>=3.8'
+requires-python = '>=3.9'
 license = {text = 'MIT'}
 keywords = [
   'self-organized-criticality',
