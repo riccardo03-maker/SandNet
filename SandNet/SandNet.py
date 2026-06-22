@@ -336,6 +336,96 @@ class Model:
             #we can use the recursion because of the Abelian property of sandpile model: avalanche dynamics
             #does not depend on the order of topplings
 
+    
+    def get_number_of_nodes(self) -> int:
+        '''
+        Return the number of nodes in the sandpile model network
+
+        Returns:
+        ----------
+            count: int
+                The number of nodes in the network
+        '''
+        return len(list(self.network.nodes))
+    
+
+    def get_node_degree(self, index: int) -> int:
+        '''
+        Return the degree of a node in the sandpile model network
+
+        Parameters:
+        ----------
+            index: int
+                The index of the node whose degree we want to know
+        Returns:
+        ----------
+            degree: int
+                The degree of the selected node
+        Raises:
+        ----------
+            ValueError:
+                If the input index does not match any node in the network
+        '''
+        if(index not in range(self.get_number_of_nodes())):
+            raise ValueError("Input index does not match any node in the network")
+        
+        return self.network.degree[self.select_node_by_index(index)] 
+    
+
+    def find_boundaries(self) -> list:
+        '''
+        Finds the boundaries of the sandpile model network
+
+        The boundaries of the network structure of the sandpile model are given by all the nodes with a threshold higher than
+        their degree. So, the boundaries are the nodes able to decrease the number of grains in the system after toppling.
+        For example, the boundaries for a lattice network are given by the sides of the grid. This function gives all the 
+        indexes of the boundary nodes (defined as above) for any kind of network structure.
+
+        Returns
+        ----------
+            indexes: list of integers
+                The indexes of the boundary nodes. If no boundary nodes are present, the function just returns
+                an empty list
+        '''
+        boundaries = []
+        for node in list(self.network.nodes):
+            if(self.network.nodes[node]["threshold"] > self.network.degree[node]):
+                boundaries.append(self.network.nodes[node]["index"])
+        
+        return boundaries
+
+
+    def add_boundaries(self, index_list: list = None, n_boundaries: int = None):
+        '''
+        Adds boundaries to the sandpile model network
+
+        The boundaries of the network structure of the sandpile model are given by all the nodes with a threshold higher than
+        their degree. So, the boundaries are the nodes able to decrease the number of grains in the system after toppling.
+        This function can turn some nodes into boundaries. These nodes can be either selected by the user (by giving
+        the indexes as input) or chosen automatically by the function. In this latter case, the function will rank
+        the nodes according to the degree and choose among the nodes with lowest degree those that will become boundaries.
+
+        Note: this function turns nodes into boundaries by just increasing their threshold by 1, so that during a toppling
+        starting from that node one grain will be lost. It is like a link with the "external" is added. So the function can
+        also act to nodes that are already boundaries, by just adding one more external link.
+
+        Parameters
+        ----------
+            index_list: list of integers
+                The list of indexes of the nodes that will become boundaries
+            n_boundaries: int
+                The number of nodes to be transformed into boundaries. If index_list is provided, this parameter is ignored
+        '''
+        if(index_list is not None):
+            for index in index_list:
+                self.network.nodes[self.select_node_by_index(index)]["threshold"] += 1
+        
+        elif(n_boundaries is not None):
+            indexes = list(range(self.get_number_of_nodes()))
+            indexes.sort(key = self.get_node_degree)
+            for index in indexes[:n_boundaries]:
+                self.network.nodes[self.select_node_by_index(index)]["threshold"] += 1
+        
 
 if(__name__ == '__main__'):
     #calculate the time required to run the evolution

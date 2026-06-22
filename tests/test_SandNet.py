@@ -419,3 +419,116 @@ def test_more_complex_avalanche_size():
     model.evolve(1, evolve_mode='fixed', position = central_index)
 
     assert(model.avalanche_sizes_collector[0] == 35)
+
+
+#Testing node counting
+
+
+def test_correct_node_count():
+    '''
+    Tests the correct count of the nodes in the network
+
+    GIVEN: a 5x5 grid network
+    WHEN: I want to obtain the number of nodes in the network
+    THEN: I obtain 25 nodes
+    '''
+    model = SandNet.Model()
+    assert(model.get_number_of_nodes() == 25)
+
+
+#Testing node degree retrieval
+
+
+def test_correct_node_degree_retrieval():
+    '''
+    Tests the correct retrieval of the degree of a node in the sandpile model network
+
+    GIVEN: sandpile model on a 3x3 grid network
+    WHEN: I want to obtain the degree of nodes
+    THEN: I obtain degree 4 for the central node, degree 3 for sides and degree 2 for vertexes
+    '''
+    model = SandNet.Model(N = 3)
+    assert(model.get_node_degree(0) == 2) #index 0 is the (0, 0) node of the grid, a vertex
+    assert(model.get_node_degree(1) == 3) #index 1 is the (0, 1) node of the grid, a side
+    assert(model.get_node_degree(4) == 4) #index 4 is the (1, 1) node of the grid, the center
+
+
+def test_incorrect_input_index():
+    '''
+    Tests the raise of a ValueError when using the get_node_degree method with an input index not associated to
+    any node
+
+    GIVEN: a 5x5 grid network
+    WHEN: I want to obtain the degree of node with index 25 (not existing, indexes go from 0 to 24)
+    THEN: the code raises a ValueError
+    '''
+    with(pytest.raises(ValueError)):
+       SandNet.Model().get_node_degree(25) 
+
+
+#Testing detection and creation of network boundaries
+
+
+def test_standard_detection_of_boundaries():
+    '''
+    Tests the correct detection of the boundaries of a 2d square lattice network
+
+    GIVEN: a sandpile model on a 3x3 grid network
+    WHEN: I want to obtain the indexes of the boundary nodes of the network
+    THEN: I obtain all the indexes from 0 to 8 except 4 (which is the central node)
+    '''
+    model = SandNet.Model(N = 3)
+    assert(model.find_boundaries() == [i for i in range(9) if i != 4])
+
+
+def test_detection_with_no_boundaries():
+    '''
+    Tests the correct detection of no boundaries in the sandpile model network when the threshold is equal
+    to the degree of the nodes
+
+    GIVEN: a sandpile model on a Barabasi-Albert network with 100 nodes and 3 starting links for each new node,
+    with a threshold equal to the degree of each node
+    (for more details on Barabasi-Albert networks see the documentation for the barabasi_albert_graph function in the Networkx package)
+    WHEN: I want to obtain the indexes of the boundary nodes of the network
+    THEN: I obtain an empty list
+    '''
+    G = nx.barabasi_albert_graph(100, 3)
+    model = SandNet.Model(G, threshold_rule='degree')
+    assert(model.find_boundaries() == [])
+
+
+def test_standard_creation_of_boundaries():
+    '''
+    Tests the correct creation of boundaries on the lowest degree nodes of a network
+
+    GIVEN: a sandpile model with a network of 5 nodes, with three nodes fully connected and the other two nodes
+    connected one to the other
+    WHEN: I create two boundaries in the network
+    THEN: the threshold of the two nodes of degree 1 is increased by 1 while the threshold of the other nodes remains
+    the same
+    '''
+    G = nx.Graph()
+    G.add_nodes_from(range(5))
+    G.add_edges_from([(0, 1), (1, 2), (0, 2), (3, 4)])
+    model = SandNet.Model(G, threshold=2)
+    model.add_boundaries(n_boundaries=2)
+
+    assert(model.network.nodes[0]["threshold"] == 2)
+    assert(model.network.nodes[1]["threshold"] == 2)
+    assert(model.network.nodes[2]["threshold"] == 2)
+    assert(model.network.nodes[3]["threshold"] == 3)
+    assert(model.network.nodes[4]["threshold"] == 3)
+
+
+def test_loop_without_boundaries():
+    '''
+    TODO
+    '''
+    assert True
+
+
+def test_avoid_loop_with_boundaries():
+    '''
+    TODO
+    '''
+    assert True
