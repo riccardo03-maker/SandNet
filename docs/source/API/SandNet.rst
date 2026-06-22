@@ -1,5 +1,5 @@
 SandNet
------
+-------
 
 .. automodule:: SandNet.SandNet
    :members:
