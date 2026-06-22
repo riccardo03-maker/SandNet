@@ -11,7 +11,6 @@ __email__=['riccardograndicelli03@gmail.com']
 __all__ = [
     '__version__', 
     'Model',
-    'plot_avalanche_size',
-    'plot_avalanche_duration'
+    'plot_avalanche_size'
 ]
 

@@ -52,7 +52,7 @@ def _set_threshold(network : nx.Graph, threshold_rule: str, threshold: int) -> n
 
 def _set_grains(network : nx.Graph, initial_grains : str) -> nx.Graph:
     '''
-    Set the initial number of grains of sand (0 for each node) 
+    Set the initial number of grains of sand
 
     Parameters
     ----------
@@ -143,10 +143,6 @@ class Model:
         self.avalanche_size = 0
         #and a list with the sizes of all avalanches
         self.avalanche_sizes_collector = []
-
-        #do the same for avalanche duration
-        self.avalanche_duration = 0
-        self.avalanche_durations_collector = []
         
 
     def select_node_by_index(self, index: int):
@@ -279,12 +275,9 @@ class Model:
             node = self.select_node_by_index(index)
             self.network.nodes[node]["grains"] += 1
             if(self.network.nodes[node]["grains"] >= self.network.nodes[node]["threshold"]):
-                self.avalanche_duration += 1
                 self._avalanche(node)
             self.avalanche_sizes_collector.append(self.avalanche_size) #avalanche size is 0 if no node toppled
             self.avalanche_size = 0
-            self.avalanche_durations_collector.append(self.avalanche_duration) #avalanche duration is 0 if no node toppled
-            self.avalanche_duration = 0
         
         #set the original recursion limit in case the size of the network is changed in successive calls of this function
         sys.setrecursionlimit(1000)
@@ -327,19 +320,22 @@ class Model:
         self.avalanche_size += 1
 
         self.network.nodes[node]["grains"] -= self.network.nodes[node]["threshold"]
-        
-        first_triggered_avalanche = True
 
         for neighbour in neighbours:
             self.network.nodes[neighbour]["grains"] += 1
             if(self.network.nodes[neighbour]["grains"] >= self.network.nodes[neighbour]["threshold"]):
-                if(first_triggered_avalanche):
-                    self.avalanche_duration += 1
-                    first_triggered_avalanche = False
-                #the duration of the avalanche is given by the number of time steps the avalanche lasts, imagining that
-                #all unstable sites topple simultaneously in parallel at each time step. So we need to increase the avalanche duration
-                #only at the first time that another avalanche is triggered during one call of the _avalanche method
-
                 self._avalanche(neighbour)
             #we can use the recursion because of the Abelian property of sandpile model: avalanche dynamics
             #does not depend on the order of topplings
+
+
+if(__name__ == '__main__'):
+    #calculate the time required to run the evolution
+    from time import time as now
+    model = Model(N = 100, initial_grains='random')
+
+    tic = now()
+    model.evolve(50000)
+    toc = now()
+
+    print("50000 steps of evolution in " + str(toc-tic) + " seconds")

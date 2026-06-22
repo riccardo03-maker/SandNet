@@ -10,8 +10,7 @@ __author__=['Riccardo Grandicelli']
 __email__=['riccardograndicelli03@gmail.com']
 
 __all__ =[
-    'plot_avalanche_size',
-    'plot_avalanche_duration'
+    'plot_avalanche_size'
 ]
 
 
@@ -80,52 +79,6 @@ def plot_avalanche_size(model: SandNet.Model):
     return fit_parameter
 
 
-def plot_avalanche_duration(model: SandNet.Model):
-    '''
-    Fit and plot avalanche durations of the sandpile model
-
-    Given a sandpile model object, this function takes the list of all the avalanche durations and fits them to a 
-    power law distribution, using in particular the pareto distribution from the scipy.stats package.
-    After the fit, the function plots avalanche durations together with the function of best fit in a logarithmic scale.
-
-    Parameters
-    ----------
-        model: SandNet.Model
-            The sandpile model for which we want to fit and plot avalanche durations
-
-    Returns
-    -------
-        fit_parameter: float
-            The exponent of the power law obtained through fitting
-        
-        Note: since in the Pareto distribution used for fitting the exponent is $b+1$ (see scipy.stats.pareto documentation 
-        for more details), the parameter obtained through fitting is $b$, and so the parameter returned by this function is not
-        the exponent of the power law, but instead the exponent decreased by 1. We prefer not to adjust the returned parameter
-        by adding 1 to avoid adding more uncertainty to the parameter due to floating point error
-    '''
-    avalanche_durations = _cut_zeros(model.avalanche_durations_collector)
-
-    #use np.histogram and plt.scatter to have a plot of points instead of a histogram
-    y, x = np.histogram(avalanche_durations, bins = np.logspace(0, np.log10(max(avalanche_durations))), density=True)
-    
-    #the last element of y includes the last two bins of x. So x has one more element than y, which we have to cut out
-    plt.scatter(x[:-1], y, label = "data points")
-
-    fit_parameter, loc, scale = pareto.fit(avalanche_durations)
-    y_fit = pareto.pdf(x[:-1], fit_parameter, loc=loc, scale=scale)
-    plt.plot(x[:-1], y_fit, label = "power law fit", color = "red", linestyle = "--")
-
-    plt.xscale("log")
-    plt.yscale("log")
-    plt.xlabel("Avalanche duration")
-    plt.ylabel("Density")
-    plt.title("Power law distribution of avalanche durations")
-    plt.legend()
-    plt.show()
-    
-    return fit_parameter
-
-
 if(__name__ == '__main__'):
 
     #execute the model on a 100x100 square grid and plot avalanche size and avalanche duration distributions
@@ -135,7 +88,3 @@ if(__name__ == '__main__'):
     fit_parameter = plot_avalanche_size(model)
     tau = fit_parameter
     print("Avalanche size exponent: " + str(tau))
-
-    fit_parameter = plot_avalanche_duration(model)
-    tau = fit_parameter
-    print("Avalanche duration exponent: " + str(tau))
