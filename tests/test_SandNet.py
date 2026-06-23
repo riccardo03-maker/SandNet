@@ -522,13 +522,30 @@ def test_standard_creation_of_boundaries():
 
 def test_loop_without_boundaries():
     '''
-    TODO
+    Tests that in a sandpile model on a network without boundaries (which means a threshold equal to the degree of
+    each node) the system remains trapped in a loop of infinite size after some steps of evolution
+    
+    GIVEN: a sandpile model on a fully connected network of 10 nodes, with a threshold equal to the degree of each node
+    WHEN: I evolve for 1000 steps
+    THEN: the code raises a RecursionError (means that it is trapped in an infinite size avalanche)
     '''
-    assert True
+    G = nx.complete_graph(10) #returns a fully connected graph with 10 nodes
+    with (pytest.raises(RecursionError)):
+        SandNet.Model(G, threshold_rule='degree').evolve(1000)
 
 
 def test_avoid_loop_with_boundaries():
     '''
-    TODO
+    Tests that in a sandpile model on a network with boundaries the system never remains trapped
+    in a loop of infinite size
+    
+    GIVEN: a sandpile model on a fully connected network of 10 nodes, with a threshold equal to the degree of each node
+    WHEN: I create one boundary
+    THEN: the system can evolve for 1000 steps without remaining trapped in an avalanche of infinite size
     '''
-    assert True
+    G = nx.complete_graph(10)
+    model = SandNet.Model(G, threshold_rule='degree')
+    model.add_boundaries(index_list = [1])
+    model.evolve(1000)
+
+    assert True #we just want to test that the code reaches the end
