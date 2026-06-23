@@ -3,7 +3,7 @@
 
 from .__version__ import __version__
 from .SandNet import Model
-from .plots import plot_avalanche_size
+from .plots import fit_avalanche_size
 
 __author__=['Riccardo Grandicelli']
 __email__=['riccardograndicelli03@gmail.com']
@@ -11,6 +11,6 @@ __email__=['riccardograndicelli03@gmail.com']
 __all__ = [
     '__version__', 
     'Model',
-    'plot_avalanche_size'
+    'fit_avalanche_size'
 ]
 

@@ -5,12 +5,13 @@ import matplotlib.pyplot as plt
 import SandNet
 import numpy as np
 from scipy.stats import pareto
+import networkx as nx
 
 __author__=['Riccardo Grandicelli']
 __email__=['riccardograndicelli03@gmail.com']
 
 __all__ =[
-    'plot_avalanche_size'
+    'fit_avalanche_size'
 ]
 
 
@@ -33,7 +34,7 @@ def _cut_zeros(vector: list) -> list:
     return no_zero_vector
 
 
-def plot_avalanche_size(model: SandNet.Model):
+def fit_avalanche_size(model: SandNet.Model, fit_exponent: float = None, plot: bool = True):
     '''
     Fit and plot avalanche sizes of the sandpile model
 
@@ -57,24 +58,28 @@ def plot_avalanche_size(model: SandNet.Model):
             by adding 1 to avoid adding more uncertainty to the parameter due to floating point error
     '''
     avalanche_sizes = _cut_zeros(model.avalanche_sizes_collector)
+    fit_parameter, loc, scale = pareto.fit(avalanche_sizes, floc = 0, fscale = 1)
+    #fix location and scale parameters for better fit
 
-    #use np.histogram and plt.scatter to have a plot of points instead of a histogram
-    y, x = np.histogram(avalanche_sizes, bins = np.logspace(0, np.log10(max(avalanche_sizes))), density=True)
+    if plot:
+
+        #use np.histogram and plt.scatter to have a plot of points instead of a histogram
+        y, x = np.histogram(avalanche_sizes, bins = np.logspace(0, np.log10(max(avalanche_sizes))), density=True)
     
-    #the last element of y includes the last two bins of x. So x has one more element than y, which we have to cut out
-    plt.scatter(x[:-1], y, label = "data points")
+        #the last element of y includes the last two bins of x. So x has one more element than y, which we have to cut out
+        plt.scatter(x[:-1], y, label = "data points")
 
-    fit_parameter, loc, scale = pareto.fit(avalanche_sizes)
-    y_fit = pareto.pdf(x[:-1], fit_parameter, loc=loc, scale=scale)
-    plt.plot(x[:-1], y_fit, label = "power law fit", color = "red", linestyle = "--")
+    
+        y_fit = pareto.pdf(x[:-1], fit_parameter, loc=loc, scale=scale)
+        plt.plot(x[:-1], y_fit, label = "power law fit", color = "red", linestyle = "--")
 
-    plt.xscale("log")
-    plt.yscale("log")
-    plt.xlabel("Avalanche size")
-    plt.ylabel("Density")
-    plt.title("Power law distribution of avalanche sizes")
-    plt.legend()
-    plt.show()
+        plt.xscale("log")
+        plt.yscale("log")
+        plt.xlabel("Avalanche size")
+        plt.ylabel("Density")
+        plt.title("Power law distribution of avalanche sizes")
+        plt.legend()
+        plt.show()
     
     return fit_parameter
 
@@ -85,6 +90,6 @@ if(__name__ == '__main__'):
     model = SandNet.Model(N=100, initial_grains='random')
     model.evolve(30000)
 
-    fit_parameter = plot_avalanche_size(model)
+    fit_parameter = fit_avalanche_size(model)
     tau = fit_parameter
     print("Avalanche size exponent: " + str(tau))
