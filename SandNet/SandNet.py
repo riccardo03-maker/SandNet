@@ -418,6 +418,21 @@ class Model:
             indexes.sort(key = self.get_node_degree)
             for index in indexes[:n_boundaries]:
                 self.network.nodes[self.select_node_by_index(index)]["threshold"] += 1
+    
+
+    def change_threshold(self, indexes: list, threshold: int):
+        '''
+        Changes the threshold of the nodes corresponding to the indexes given as input
+
+        Parameters:
+        ----------
+            indexes: list of integers
+                The indexes of the nodes for which we want to change the threshold
+            threshold: int
+                The new value of threshold that will be assigned to the selected nodes
+        '''
+        for index in indexes:
+            self.network.nodes[self.select_node_by_index(index)]["threshold"] = threshold
         
 
 if(__name__ == '__main__'):

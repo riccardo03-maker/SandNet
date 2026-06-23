@@ -549,3 +549,20 @@ def test_avoid_loop_with_boundaries():
     model.evolve(1000)
 
     assert True #we just want to test that the code reaches the end
+
+
+# Test threshold modification
+
+
+def test_change_threshold():
+    '''
+    Tests the correct change of the threshold of some nodes
+
+    GIVEN: a sandpile model on a 3x3 grid network
+    WHEN: I want to change the threshold of two nodes to 5
+    THEN: the threshold of those nodes becomes 5
+    '''
+    model = SandNet.Model(N = 3)
+    model.change_threshold([0, 4], 5) #correspond to nodes (0, 0) and (1, 1)
+    assert(model.network.nodes[(0, 0)]["threshold"] == 5)
+    assert(model.network.nodes[(1, 1)]["threshold"] == 5)
