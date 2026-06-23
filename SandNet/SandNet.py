@@ -230,7 +230,7 @@ class Model:
         return indexes
         
     
-    def evolve(self, steps: int, evolve_mode = 'random', position: int = None):
+    def evolve(self, steps: int, evolve_mode = 'random', position: int = None, lose_probability: float = None):
         '''
         Evolves the sandpile model for a certain number of steps
 
@@ -246,14 +246,23 @@ class Model:
                 The index of the node at which new grains are added.
                 If the evolve_mode is 'random', this parameter is ignored.
                 If the evolve mode is 'fixed' and position is None, one random position is selected
+            lose_probability: float (default: None)
+                The probability that a grain is lost during a toppling. This is useful if the network has no boundaries
+                to avoid the lock of the system into an avalanche of infinite size.
+                If this parameter is None, grains will never be lost during a toppling.
+                If this parameter is lower than 0 or greater than 1, the code raises a ValueError
         Raises
         -------
             ValueError:
                 If the evolve mode is not an accepted one
             ValueError:
                 If the position selected does not exist
+            ValueError:
+                If the probability to lose a grain is not between 0 and 1
         '''
         np.random.seed(self.seed)
+        if(lose_probability is not None and (lose_probability < 0. or lose_probability > 1.)):
+            raise ValueError("Not accepted value of probability")
 
         #for both 'fixed' and 'random' evolutions, we create a list of indexes of nodes
         #where the grain will be added at each step.
@@ -283,7 +292,7 @@ class Model:
             node = self.select_node_by_index(index)
             self.network.nodes[node]["grains"] += 1
             if(self.network.nodes[node]["grains"] >= self.network.nodes[node]["threshold"]):
-                self._avalanche(node)
+                self._avalanche(node, lose_probability)
             self.avalanche_sizes_collector.append(self.avalanche_size) #avalanche size is 0 if no node toppled
             self.avalanche_size = 0
         
@@ -291,7 +300,7 @@ class Model:
         sys.setrecursionlimit(1000)
             
 
-    def _avalanche(self, node):
+    def _avalanche(self, node, lose_probability):
         '''
         Computes an avalanche
 
@@ -307,6 +316,10 @@ class Model:
             node:
                 The node that is toppling
                 Note: there is no specific type for the output, since the nodes of a nx.Graph can be of any type
+            lose_probability: float
+                The probability that a grain is lost during a toppling. This parameter is directly passed from
+                the evolve function
+
         Raises
         -------
             Exception:
@@ -329,10 +342,17 @@ class Model:
 
         self.network.nodes[node]["grains"] -= self.network.nodes[node]["threshold"]
 
-        for neighbour in neighbours:
-            self.network.nodes[neighbour]["grains"] += 1
-            if(self.network.nodes[neighbour]["grains"] >= self.network.nodes[neighbour]["threshold"]):
-                self._avalanche(neighbour)
+        if(lose_probability is not None):
+            is_grain_passed = list(np.random.uniform(size = len(neighbours)) > lose_probability)
+            #if one element of this list is False, the corresponding neighbour of the toppling node will not receive a grain
+        else:
+            is_grain_passed = [True] * len(neighbours)
+
+        for i, neighbour in enumerate(neighbours):
+            if(is_grain_passed[i]):
+                self.network.nodes[neighbour]["grains"] += 1
+                if(self.network.nodes[neighbour]["grains"] >= self.network.nodes[neighbour]["threshold"]):
+                    self._avalanche(neighbour, lose_probability)
             #we can use the recursion because of the Abelian property of sandpile model: avalanche dynamics
             #does not depend on the order of topplings
 

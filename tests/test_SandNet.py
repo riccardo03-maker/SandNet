@@ -374,6 +374,48 @@ def test_dynamics_on_large_network():
     assert True
 
 
+def test_wrong_lose_probability_input():
+    '''
+    Tests the raise of a ValueError when the lose probability for the evolve function is not a probability (not between 0 and 1)
+
+    GIVEN: a sandpile model on an arbitrary network
+    WHEN: I evolve the model giving a wrong lose probability
+    THEN: the code raises a ValueError
+    '''
+    with pytest.raises(ValueError):
+        SandNet.Model().evolve(10, lose_probability=2)
+
+
+def test_no_infinite_loop_with_lose_probability():
+    '''
+    Tests that the system does not remain trapped into an avalanche of infinite size when the threshold is equal to the degree
+    of each node, but we have a non-zero probability to lose grains during a toppling
+
+    GIVEN: a sandpile model on a 50 x 50 square grid, with threshold equal to the degree of each node and initial
+    random number of grains
+    WHEN: I evolve the model for 5000, adding grains in random positions and with a probability of 0.0001 to lose a grain
+    during a toppling
+    THEN: the code runs without remaining trapped in an avalanche of infinite size
+    '''
+    model = SandNet.Model(N = 50, threshold_rule="degree", initial_grains="random")
+    model.evolve(5000, lose_probability=0.0001)
+    assert True
+
+
+def test_infinite_loop_without_lose_probability():
+    '''
+    Tests that in the same situation of the previous test but without losing grains during a toppling the system
+    remains trapped in an avalanche of infinite size
+
+    GIVEN: a sandpile model on a 50 x 50 square grid, with threshold equal to the degree of each node and initial
+    random number of grains
+    WHEN: I evolve the model for 5000, adding grains in random positions
+    THEN: the code raises a RecursionError
+    '''
+    with pytest.raises(RecursionError):
+        SandNet.Model(N = 50, threshold_rule='degree', initial_grains = "random").evolve(5000)
+
+
 #Avalanche size calculation
 
 
