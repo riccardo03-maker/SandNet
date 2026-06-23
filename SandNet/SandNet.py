@@ -361,14 +361,7 @@ class Model:
         ----------
             degree: int
                 The degree of the selected node
-        Raises:
-        ----------
-            ValueError:
-                If the input index does not match any node in the network
         '''
-        if(index not in range(self.get_number_of_nodes())):
-            raise ValueError("Input index does not match any node in the network")
-        
         return self.network.degree[self.select_node_by_index(index)] 
     
 
