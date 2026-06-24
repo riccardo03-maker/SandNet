@@ -346,3 +346,23 @@ def test_change_threshold():
     model.change_threshold([0, 4], 5) #correspond to nodes (0, 0) and (1, 1)
     assert(model.network.nodes[(0, 0)]["threshold"] == 5)
     assert(model.network.nodes[(1, 1)]["threshold"] == 5)
+
+
+# Testing node removal
+
+
+def test_node_removal():
+    '''
+    Tests the correct removal of nodes from a network
+
+    GIVEN: a sandpile model on a 3x3 grid network
+    WHEN: I want to remove all nodes with degree equal to 2 (so the vertexes)
+    THEN: we have five remaining nodes in the network, one with degree 4 (the central one) and the others with
+    degree 1 (since also the edges of the vertexes are removed together with the nodes)
+    '''
+    model = SandNet.Model(N = 3)
+    model.remove_nodes_by_index(model.select_nodes_by_degree(2))
+
+    assert(len(model.network.nodes) == 5)
+    assert(len(model.select_nodes_by_degree(4)) == 1)
+    assert(len(model.select_nodes_by_degree(1)) == 4)

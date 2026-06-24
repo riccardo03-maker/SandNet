@@ -176,12 +176,13 @@ class Model:
             ValueError:
                 If there is no node with the input index
         '''
-        if(index>=len(self.network.nodes)):
-            raise ValueError("No node with the selected index")
-
         #use the next function because we have only one node for each index, so we can stop the search
         #at the first node we find with the correct index
-        node = next(node for node in list(self.network.nodes) if self.network.nodes[node]["index"] == index)
+        node = next((node for node in list(self.network.nodes) if self.network.nodes[node]["index"] == index), None)
+
+        if(node is None):
+            raise ValueError("No node with the selected index")
+
         return node
 
 
@@ -233,6 +234,19 @@ class Model:
         '''
         for index in indexes:
             self.network.nodes[self.select_node_by_index(index)]["threshold"] = threshold
+    
+
+    def remove_nodes_by_index(self, indexes: list):
+        '''
+        Removes one or more nodes in the network
+
+        Parameters:
+        ----------
+            indexes: list of integers
+                The indexes of the nodes we want to remove
+        '''
+        for index in indexes:
+            self.network.remove_node(self.select_node_by_index(index))
     
 
     def evolve(self, steps: int, evolve_mode = 'random', position: int = None, lose_probability: float = None):
