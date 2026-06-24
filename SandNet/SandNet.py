@@ -12,97 +12,6 @@ __all__ =[
     'Model'
 ]
 
-def _set_threshold(network : nx.Graph, threshold_rule: str, threshold: int) -> nx.Graph:
-    '''
-    Set thresholds for sandpile model
-
-    If the number of grains on a node exceeds its threshold, the node topples 
-
-    Parameters
-    ----------
-        network: nx.Graph
-            The newtork structure of the sandpile model
-        threshold_rule: {'fixed', 'degree'}
-            The rule used to set thresholds
-                fixed: each node has the same threshold
-                degree: the threshold of each node is given by its degree
-        threshold: int
-            The threshold of each node for the 'fixed' rule. If the threshold rule is not 'fixed', this parameter is ignored
-
-    Returns
-    -------
-        network: nx.Graph
-            The initial network but with thresholds set
-    Raises
-    -------
-        ValueError:
-            If the input threshold rule is not an accepted one
-    '''
-    nodes = list(network.nodes)
-    if(threshold_rule == "fixed"):
-        for node in nodes:
-            network.nodes[node]["threshold"] = threshold
-    elif(threshold_rule == "degree"):
-        for node in nodes:
-            network.nodes[node]["threshold"] = network.degree(node)
-    else:
-        raise ValueError("Invalid threshold rule")
-    return network
-
-
-def _set_grains(network : nx.Graph, initial_grains : str, seed: int) -> nx.Graph:
-    '''
-    Set the initial number of grains of sand
-
-    Parameters
-    ----------
-        network: nx.Graph
-            The newtork structure of the sandpile model
-        initial_grains: {'zero', 'random'}
-            Selects how the initial number of grains is chosen:
-                zero: all nodes have 0 grains at the beginning
-                random: the initial number of grains for each node is a random integer between 0 and the threshold of the node minus one
-        seed: int
-            The seed for random number generation for the 'random' initial grains mode.
-            If initial grains mode is 'zero', this parameter is ignored
-    Returns
-    -------
-        network: nx.Graph
-            The initial network but with initial number of grains set
-    '''
-    nodes = list(network.nodes)
-    if(initial_grains == 'zero'):    
-        for node in nodes:
-            network.nodes[node]["grains"] = 0
-    elif(initial_grains == 'random'):
-        np.random.seed(seed)
-        for node in nodes:
-            network.nodes[node]["grains"] = np.random.randint(0, network.nodes[node]["threshold"])
-    else:
-        raise ValueError("Wrong input for initial_grains")
-    return network
-
-
-def _set_index(network: nx.Graph) -> nx.Graph:
-    '''
-    Set a progressive index for each node in the network 
-
-    Parameters
-    ----------
-        network: nx.Graph
-            The newtork structure of the sandpile model
-
-    Returns
-    -------
-        network: nx.Graph
-            The initial network but with indexes set
-    '''
-    nodes = list(network.nodes)
-    for i, node in enumerate(nodes):
-            network.nodes[node]["index"] = i
-    return network
-
-
 class Model:
     '''
     This class defines a sandpile model on a network structure
@@ -130,6 +39,13 @@ class Model:
         seed: int (default: 42)
             The seed for random number generation. This seed is used for all the methods of the class that generate
             random numbers.
+    Raises
+    -------
+        ValueError:
+            If the input threshold rule is not an accepted one
+        ValueError:
+            If the input rule for initial grains is not an accepted one
+    
     '''
 
     def __init__(self, network: nx.Graph = None, N = 5, threshold_rule: str = "fixed", threshold: int = 4, initial_grains: str = 'zero', seed: int = 42):
@@ -143,16 +59,85 @@ class Model:
         #the seed for random number generation is a parameter of the class, used in all the class methods
         #that generate random numbers
 
-        self.network = _set_threshold(self.network, threshold_rule, threshold)
-        self.network = _set_grains(self.network, initial_grains, self.seed)
-
-        #set an integer index to each node to identify it (will be useful during the evolution phase)
-        self.network = _set_index(self.network)
+        self.network = self._set_initial_parameters(self.network, threshold_rule, threshold, initial_grains, seed)
 
         #define now a variable to measure avalanche size during the evolution (see _avalanche method)
         self.avalanche_size = 0
         #and a list with the sizes of all avalanches
         self.avalanche_sizes_collector = []
+    
+
+    @staticmethod
+    def _set_initial_parameters(network : nx.Graph, threshold_rule: str, threshold: int, 
+                                initial_grains : str, seed: int) -> nx.Graph:
+        '''
+        Set the initial parameters for the network used as structure for the sandpile model
+
+        This method is used in the initialization of the Model object, and it sets the initial values of some
+        parameters for the nodes of the network on which the sandpile model will be run. These parameters are:
+
+            Index: an progressive integer label for each node. This is useful to retrieve nodes and modify their features through
+            methods of the Model class, since in the networkx package node can be labelled by any kind of data. So, giving
+            nodes an integer labels allows an easier access to them
+
+            Grains: the initial number of "grains of sand" on each node, which represents the initial condition
+            for the evolution of the sandpile model
+
+            Threshold: the threshold height of each node. During the evolution of the sandpile model, if the number
+            of grains on a node is greater or equal than this threshold, the node topples, and its grains are distributed
+            among its neighbours
+
+        Parameters
+        ----------
+            network: nx.Graph
+                The newtork structure of the sandpile model
+            threshold_rule: {'fixed', 'degree'}
+                The rule used to set thresholds
+                    fixed: each node has the same threshold
+                    degree: the threshold of each node is given by its degree
+            threshold: int
+                The threshold of each node for the 'fixed' rule. If the threshold rule is not 'fixed', this parameter is ignored
+            initial_grains: {'zero', 'random'}
+                Selects how the initial number of grains is chosen:
+                    zero: all nodes have 0 grains at the beginning
+                    random: the initial number of grains for each node is a random integer between 0 and the threshold of the node minus one
+            seed: int
+                The seed for random number generation for the 'random' initial grains mode.
+                If initial grains mode is 'zero', this parameter is ignored
+        Returns
+        -------
+            network: nx.Graph
+                The initial network but with initial parameters set
+        Raises
+        -------
+            ValueError:
+                If the input threshold rule is not an accepted one
+            ValueError:
+                If the input rule for initial grains is not an accepted one
+        '''
+        np.random.seed(seed)
+
+        nodes = list(network.nodes)
+        for i, node in enumerate(nodes):
+            network.nodes[node]["index"] = i
+
+            if(threshold_rule == "fixed"):
+                network.nodes[node]["threshold"] = threshold
+            elif(threshold_rule == "degree"):
+                network.nodes[node]["threshold"] = network.degree(node)
+            else:
+                raise ValueError("Invalid threshold rule")
+            
+            if(initial_grains == 'zero' or network.nodes[node]["threshold"] in [0, 1]):
+                #if the threshold is 0 or 1 than the initial number of grains will be always 0 even if the
+                #initial grains rule is 'random'
+                network.nodes[node]["grains"] = 0
+            elif(initial_grains == 'random'):
+                    network.nodes[node]["grains"] = np.random.randint(0, network.nodes[node]["threshold"])
+            else:
+                raise ValueError("Wrong input for initial_grains")
+
+        return network
         
 
     def select_node_by_index(self, index: int):
