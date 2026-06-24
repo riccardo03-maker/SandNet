@@ -225,6 +225,9 @@ class Model:
         '''
         Removes one or more nodes in the network
 
+        Note: after the removal of the nodes, the indexes are re-assigned to the nodes so that the new indexes are
+        all the integers spanning from 0 and the new number of nodes minus 1
+
         Parameters:
         ----------
             indexes: list of integers
@@ -232,6 +235,11 @@ class Model:
         '''
         for index in indexes:
             self.network.remove_node(self.select_node_by_index(index))
+        
+        #re-assign index labels
+        nodes = list(self.network.nodes)
+        for i, node in enumerate(nodes):
+            self.network.nodes[node]["index"] = i
     
 
     def evolve(self, steps: int, evolve_mode = 'random', position: int = None, lose_probability: float = None):

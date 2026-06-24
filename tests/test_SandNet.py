@@ -366,3 +366,19 @@ def test_node_removal():
     assert(len(model.network.nodes) == 5)
     assert(len(model.select_nodes_by_degree(4)) == 1)
     assert(len(model.select_nodes_by_degree(1)) == 4)
+
+
+def test_index_assignment_after_node_removal():
+    '''
+    Tests the correct re-assignment of indexes to network nodes after the removal of some nodes
+
+    GIVEN: a sandpile model on a network with 3 nodes
+    WHEN: the node with the index 1 is removed
+    THEN: the node with initial index equal to 2 has now an index equal to 1
+    '''
+    G = nx.Graph()
+    G.add_nodes_from(range(3))
+    model = SandNet.Model(G)
+    model.remove_nodes_by_index([1])
+
+    assert(model.network.nodes[2]["index"] == 1)
