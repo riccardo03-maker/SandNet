@@ -188,10 +188,6 @@ class Model:
     def select_nodes_by_degree(self, degree: int, raises = True) -> int:
         '''
         Select all network nodes with a certain degree
-
-        Given a sandpile model with a network structure, this function allows to select a node
-        starting from its degree. If more than one node has the same degree, the function will return a list
-        of nodes with the selected degree.
         
         Parameters
         ----------
@@ -203,9 +199,8 @@ class Model:
 
         Returns
         -------
-            node_index: int
-                The index (or list of indexes) of the node(s) with the selected degree.
-                The returned index can be used as input for the function select_node_by_index
+            node_index: list of integers
+                The list of indexes of the nodes with the selected degree.
         Raises
         -------
             ValueError:
@@ -220,16 +215,26 @@ class Model:
         degree_list = list(self.network.degree)
         indexes = [node["index"] for i, node in enumerate(node_features) if degree_list[i][1] == degree]
 
-        #transform a list into an integer if it has only one element,
-        #otherwise the function would return a list of one element
-        if(len(indexes) == 1):
-            indexes = indexes[0]
-
         if raises and not indexes:
             raise ValueError("No node with the selected degree")
         return indexes
-        
+
+
+    def change_threshold(self, indexes: list, threshold: int):
+        '''
+        Changes the threshold of the nodes corresponding to the indexes given as input
+
+        Parameters:
+        ----------
+            indexes: list of integers
+                The indexes of the nodes for which we want to change the threshold
+            threshold: int
+                The new value of threshold that will be assigned to the selected nodes
+        '''
+        for index in indexes:
+            self.network.nodes[self.select_node_by_index(index)]["threshold"] = threshold
     
+
     def evolve(self, steps: int, evolve_mode = 'random', position: int = None, lose_probability: float = None):
         '''
         Evolves the sandpile model for a certain number of steps
@@ -438,21 +443,6 @@ class Model:
             indexes.sort(key = self.get_node_degree)
             for index in indexes[:n_boundaries]:
                 self.network.nodes[self.select_node_by_index(index)]["threshold"] += 1
-    
-
-    def change_threshold(self, indexes: list, threshold: int):
-        '''
-        Changes the threshold of the nodes corresponding to the indexes given as input
-
-        Parameters:
-        ----------
-            indexes: list of integers
-                The indexes of the nodes for which we want to change the threshold
-            threshold: int
-                The new value of threshold that will be assigned to the selected nodes
-        '''
-        for index in indexes:
-            self.network.nodes[self.select_node_by_index(index)]["threshold"] = threshold
         
 
 if(__name__ == '__main__'):

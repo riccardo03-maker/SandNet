@@ -203,7 +203,7 @@ def test_generic_degree_selection():
     correct_index = model.network.nodes[1]["index"] #get the index of the node of degree 3 for the test
 
     retrieved_index = model.select_nodes_by_degree(3)
-    assert(retrieved_index==correct_index)
+    assert(retrieved_index==[correct_index]) #select_node_by_degree returns a list, not an integer
 
 
 def test_wrong_degree_input():
