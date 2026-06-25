@@ -4,6 +4,7 @@
 import numpy as np
 import networkx as nx
 import sys
+from scipy.sparse import lil_matrix
 
 __author__=['Riccardo Grandicelli']
 __email__=['riccardograndicelli03@gmail.com']
@@ -65,6 +66,13 @@ class Model:
         self.avalanche_size = 0
         #and a list with the sizes of all avalanches
         self.avalanche_sizes_collector = []
+
+        #do the same with avalanche areas
+        self.avalanche_area = 0
+        self.avalanche_area_collector = []
+
+        #define also a matrix to register the number of topplings for each node at each step of evolution
+        self.avalanche_matrix = None
     
 
     @staticmethod
@@ -275,12 +283,14 @@ class Model:
         np.random.seed(self.seed)
         if(lose_probability is not None and (lose_probability < 0. or lose_probability > 1.)):
             raise ValueError("Not accepted value of probability")
+        
+        #first initialize the avalanche matrix: each row is a step of evolution and each column is a node
+        self.avalanche_matrix = lil_matrix((steps, self.get_number_of_nodes()), dtype = np.int32)
 
         #for both 'fixed' and 'random' evolutions, we create a list of indexes of nodes
         #where the grain will be added at each step.
         #So in the first case we will have a list of the length of the steps with always the same element.
         #This is useful to write the same code in both the evolution modes
-
         if(evolve_mode == 'fixed'):
             if(position >= len(self.network.nodes)):
                 raise ValueError("Position selected does not exist")
@@ -300,19 +310,29 @@ class Model:
         if(len(self.network.nodes) > 500):
             sys.setrecursionlimit(2 * len(self.network.nodes))
         
-        for index in grain_positions:
+        for step, index in enumerate(grain_positions):
             node = self.select_node_by_index(index)
             self.network.nodes[node]["grains"] += 1
+
             if(self.network.nodes[node]["grains"] >= self.network.nodes[node]["threshold"]):
-                self._avalanche(node, lose_probability)
+                self.avalanche_matrix[step, index] += 1
+                if(self.avalanche_matrix[step, index] == 1):
+                    self.avalanche_area += 1
+                #avalanche area must be increased only the first time a node topples in an avalanche, because it only
+                #counts the total number of node that have toppled
+
+                self._avalanche(node, lose_probability, step)
+
             self.avalanche_sizes_collector.append(self.avalanche_size) #avalanche size is 0 if no node toppled
             self.avalanche_size = 0
+            self.avalanche_area_collector.append(self.avalanche_area)
+            self.avalanche_area = 0
         
         #set the original recursion limit in case the size of the network is changed in successive calls of this function
         sys.setrecursionlimit(1000)
             
 
-    def _avalanche(self, node, lose_probability):
+    def _avalanche(self, node, lose_probability: float, step: int):
         '''
         Computes an avalanche
 
@@ -331,6 +351,8 @@ class Model:
             lose_probability: float
                 The probability that a grain is lost during a toppling. This parameter is directly passed from
                 the evolve function
+            step: int
+                The running step of evolution. This parameter is directly passed from the evolve function
 
         Raises
         -------
@@ -348,7 +370,7 @@ class Model:
         if(len(neighbours) > self.network.nodes[node]["threshold"]):
             raise Exception("Number of neighbours higher than threshold")
         
-        #avalanche_size is not a local variable because _avalanche method is recursive, so it would
+        #avalanche_size and avalanche_area are not local variables because _avalanche method is recursive, so they would
         #be resetted to 0 at each call of the method
         self.avalanche_size += 1
 
@@ -364,7 +386,11 @@ class Model:
             if(is_grain_passed[i]):
                 self.network.nodes[neighbour]["grains"] += 1
                 if(self.network.nodes[neighbour]["grains"] >= self.network.nodes[neighbour]["threshold"]):
-                    self._avalanche(neighbour, lose_probability)
+                    self.avalanche_matrix[step, self.network.nodes[neighbour]["index"]] += 1
+                    if(self.avalanche_matrix[step, self.network.nodes[neighbour]["index"]] == 1):
+                        self.avalanche_area += 1
+
+                    self._avalanche(neighbour, lose_probability, step)
             #we can use the recursion because of the Abelian property of sandpile model: avalanche dynamics
             #does not depend on the order of topplings
 

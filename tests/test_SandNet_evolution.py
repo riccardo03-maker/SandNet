@@ -268,3 +268,101 @@ def test_more_complex_avalanche_size():
     model.evolve(1, evolve_mode='fixed', position = central_index)
 
     assert(model.avalanche_sizes_collector[0] == 35)
+
+
+# Avalanche area calculation
+
+
+def test_avalanche_area_calculation():
+    '''
+    Tests the correct calculation of avalanche area history
+
+    GIVEN: a 3x3 grid network with a threshold of 4 for each node
+    WHEN: I evolve for 16 steps, adding all grains to the central node
+    THEN: I have an avalanche of area 1 at step 4, 8 and 12, an avalanche of area 5 at step 16, and avalanches
+    of size 0 for all the other steps
+    '''
+    model = SandNet.Model(N=3)
+    model.evolve(16, evolve_mode='fixed', position=model.network.nodes[(1, 1)]["index"])
+    #nodes in a 2d square grid created with the grid_2d_graph function are named using tuples of 2 integers
+    #in this case (1,1) represents the center of the grid
+    #see networkx documentation for better explanation
+
+    assert(model.avalanche_area_collector[3] == 1) #avalanche_area_collector[N-1] corresponds to step N
+    assert(model.avalanche_area_collector[7] == 1)
+    assert(model.avalanche_area_collector[11] == 1)
+    assert(model.avalanche_area_collector[4] == 0)
+    assert(model.avalanche_area_collector[15] == 5)
+
+
+def test_more_complex_avalanche_area():
+    '''
+    Tests the correct calculation of avalanche area for a more complex avalanche with respect to previous test.
+    The calculation of the correct value of avalanche area has been done by hand, and in this case the area covers
+    the whole network
+
+    GIVEN: a 5x5 grid network with a threshold of 4 for each node, with 3 grains in each node
+    WHEN: I add one grain on the central node
+    THEN: I have an avalanche of size 25 (all nodes topple)
+    '''
+    model = SandNet.Model()
+    for index in range(25):
+        model.network.nodes[model.select_node_by_index(index)]["grains"] = 3
+        #set manually the initial condition because we want to test just one avalanche
+    
+    central_index = model.network.nodes[(2, 2)]["index"]
+    #the index of the central node, that can be passed as an argument to the evolve method
+
+    model.evolve(1, evolve_mode='fixed', position = central_index)
+
+    assert(model.avalanche_area_collector[0] == 25)
+
+
+# Avalanche matrix calculation
+
+
+def test_avalanche_matrix_calculation():
+    '''
+    Tests the correct calculation of the number of topplings for each node at each time step (avalanche matrix)
+
+    GIVEN: a 3x3 grid network with a threshold of 4 for each node
+    WHEN: I evolve for 16 steps, adding all grains to the central node
+    THEN: at step 16 I have two topplings on the central node, one toppling on each side node and 0 topplings on the
+    other nodes
+    '''
+    model = SandNet.Model(N=3)
+    model.evolve(16, evolve_mode='fixed', position=model.network.nodes[(1, 1)]["index"])
+    #nodes in a 2d square grid created with the grid_2d_graph function are named using tuples of 2 integers
+    #in this case (1,1) represents the center of the grid
+    #see networkx documentation for better explanation
+
+    assert(model.avalanche_matrix[15, model.network.nodes[(1, 1)]["index"]] == 2)
+    assert(model.avalanche_matrix[15, model.network.nodes[(0, 1)]["index"]] == 1)
+    assert(model.avalanche_matrix[15, model.network.nodes[(0, 0)]["index"]] == 0)
+
+
+def test_more_complex_avalanche_matrix():
+    '''
+    Tests the correct calculation of number of topplings for each node (avalanche matrix) for a more complex 
+    avalanche with respect to previous test.
+    The calculation of the correct valus of the avalanche matrix have been done by hand
+
+    GIVEN: a 5x5 grid network with a threshold of 4 for each node, with 3 grains in each node
+    WHEN: I add one grain on the central node
+    THEN: I have 3 topplings on the central node (index 12), 2 topplings on each internal node of the grid except
+    for the central one, and one toppling for all the other nodes (the external nodes)
+    '''
+    model = SandNet.Model()
+    for index in range(25):
+        model.network.nodes[model.select_node_by_index(index)]["grains"] = 3
+        #set manually the initial condition because we want to test just one avalanche
+    
+    central_index = model.network.nodes[(2, 2)]["index"]
+    #the index of the central node, that can be passed as an argument to the evolve method
+
+    model.evolve(1, evolve_mode='fixed', position = central_index)
+
+    assert(model.avalanche_matrix[0, central_index] == 3)
+    assert(model.avalanche_matrix[0, 8] == 2) #index 8 is one of the internal nodes
+    assert(model.avalanche_matrix[0, 21] == 1) #index 21 is one of the external sides of the grid
+    assert(model.avalanche_matrix[0, 0] == 1) #index 0 is one of the vertexes
