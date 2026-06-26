@@ -37,8 +37,8 @@ class Model:
             Selects how the initial number of grains for each node is chosen:
                 zero: all nodes have 0 grains at the beginning
                 random: the initial number of grains for each node is a random integer between 0 and the threshold of the node minus one
-        seed: int (default: 42)
-            The seed for random number generation. This seed is used for all the methods of the class that generate
+        seed: int (default: None)
+            The seed for random number generation. If provided, this seed is used for all the methods of the class that generate
             random numbers.
     Raises
     -------
@@ -49,7 +49,7 @@ class Model:
     
     '''
 
-    def __init__(self, network: nx.Graph = None, N = 5, threshold_rule: str = "fixed", threshold: int = 4, initial_grains: str = 'zero', seed: int = 42):
+    def __init__(self, network: nx.Graph = None, N = 5, threshold_rule: str = "fixed", threshold: int = 4, initial_grains: str = 'zero', seed: int = None):
         if network is None:
             #create a 2d square lattice using the right NetworkX function
             self.network = nx.grid_2d_graph(N, N)
