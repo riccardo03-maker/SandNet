@@ -283,7 +283,7 @@ def test_avalanche_area_calculation():
     of size 0 for all the other steps
     '''
     model = SandNet.Model(N=3)
-    model.evolve(16, evolve_mode='fixed', position=model.network.nodes[(1, 1)]["index"])
+    model.evolve(16, evolve_mode='fixed', position=model.network.nodes[(1, 1)]["index"], avalanche_matrix=True)
     #nodes in a 2d square grid created with the grid_2d_graph function are named using tuples of 2 integers
     #in this case (1,1) represents the center of the grid
     #see networkx documentation for better explanation
@@ -313,7 +313,7 @@ def test_more_complex_avalanche_area():
     central_index = model.network.nodes[(2, 2)]["index"]
     #the index of the central node, that can be passed as an argument to the evolve method
 
-    model.evolve(1, evolve_mode='fixed', position = central_index)
+    model.evolve(1, evolve_mode='fixed', position = central_index, avalanche_matrix = True)
 
     assert(model.avalanche_area_collector[0] == 25)
 
@@ -331,7 +331,7 @@ def test_avalanche_matrix_calculation():
     other nodes
     '''
     model = SandNet.Model(N=3)
-    model.evolve(16, evolve_mode='fixed', position=model.network.nodes[(1, 1)]["index"])
+    model.evolve(16, evolve_mode='fixed', position=model.network.nodes[(1, 1)]["index"], avalanche_matrix=True)
     #nodes in a 2d square grid created with the grid_2d_graph function are named using tuples of 2 integers
     #in this case (1,1) represents the center of the grid
     #see networkx documentation for better explanation
@@ -360,7 +360,7 @@ def test_more_complex_avalanche_matrix():
     central_index = model.network.nodes[(2, 2)]["index"]
     #the index of the central node, that can be passed as an argument to the evolve method
 
-    model.evolve(1, evolve_mode='fixed', position = central_index)
+    model.evolve(1, evolve_mode='fixed', position = central_index, avalanche_matrix = True)
 
     assert(model.avalanche_matrix[0, central_index] == 3)
     assert(model.avalanche_matrix[0, 8] == 2) #index 8 is one of the internal nodes
