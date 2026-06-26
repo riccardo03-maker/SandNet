@@ -146,7 +146,7 @@ class Model:
                 raise ValueError("Wrong input for initial_grains")
 
         return network
-        
+
 
     def select_node_by_index(self, index: int):
         '''
@@ -405,7 +405,31 @@ class Model:
             #we can use the recursion because of the Abelian property of sandpile model: avalanche dynamics
             #does not depend on the order of topplings
 
+
+    def get_avalanche_areas(self) -> list:
+        '''
+        Return the list with all the avalanche areas measured during model evolution
+
+        Returns
+        -------
+            avalanche_areas: list of integers
+                The values of avalanche areas measured during model evolution
+        '''
+        return self.avalanche_areas_collector
+
+
+    def get_avalanche_sizes(self) -> list:
+        '''
+        Return the list with all the avalanche sizes measured during model evolution
+
+        Returns
+        -------
+            avalanche_sizes: list of integers
+                The values of avalanche sizes measured during model evolution
+        '''
+        return self.avalanche_sizes_collector
     
+
     def get_number_of_nodes(self) -> int:
         '''
         Return the number of nodes in the sandpile model network
