@@ -69,7 +69,7 @@ class Model:
 
         #do the same with avalanche areas
         self.avalanche_area = 0
-        self.avalanche_area_collector = []
+        self.avalanche_areas_collector = []
 
         #define also a matrix to register the number of topplings for each node at each step of evolution
         self.avalanche_matrix = None
@@ -332,7 +332,7 @@ class Model:
 
             self.avalanche_sizes_collector.append(self.avalanche_size) #avalanche size is 0 if no node toppled
             self.avalanche_size = 0
-            self.avalanche_area_collector.append(self.avalanche_area)
+            self.avalanche_areas_collector.append(self.avalanche_area)
             self.avalanche_area = 0
         
         #set the original recursion limit in case the size of the network is changed in successive calls of this function
