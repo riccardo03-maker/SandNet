@@ -288,11 +288,11 @@ def test_avalanche_area_calculation():
     #in this case (1,1) represents the center of the grid
     #see networkx documentation for better explanation
 
-    assert(model.avalanche_area_collector[3] == 1) #avalanche_area_collector[N-1] corresponds to step N
-    assert(model.avalanche_area_collector[7] == 1)
-    assert(model.avalanche_area_collector[11] == 1)
-    assert(model.avalanche_area_collector[4] == 0)
-    assert(model.avalanche_area_collector[15] == 5)
+    assert(model.avalanche_areas_collector[3] == 1) #avalanche_areas_collector[N-1] corresponds to step N
+    assert(model.avalanche_areas_collector[7] == 1)
+    assert(model.avalanche_areas_collector[11] == 1)
+    assert(model.avalanche_areas_collector[4] == 0)
+    assert(model.avalanche_areas_collector[15] == 5)
 
 
 def test_more_complex_avalanche_area():
@@ -315,7 +315,7 @@ def test_more_complex_avalanche_area():
 
     model.evolve(1, evolve_mode='fixed', position = central_index, avalanche_matrix = True)
 
-    assert(model.avalanche_area_collector[0] == 25)
+    assert(model.avalanche_areas_collector[0] == 25)
 
 
 # Avalanche matrix calculation
