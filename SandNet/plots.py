@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import SandNet
 import numpy as np
 from scipy.stats import pareto
-import networkx as nx
 
 __author__=['Riccardo Grandicelli']
 __email__=['riccardograndicelli03@gmail.com']
@@ -140,7 +139,7 @@ def plot_avalanche_size(model: SandNet.Model, figure = None, x_label: str = None
     return figure
 
 
-def fit_powerlaw(model: SandNet.Model, quantity: str = 'size', plot: bool = True, figure = None, x_label: str = None,
+def fit_powerlaw(model: SandNet.Model, quantity: str = 'size', figure = None, x_label: str = None,
                        y_label: str = None, title: str = None, **kwargs):
     '''
     Fit and plot avalanche sizes of the sandpile model
@@ -194,30 +193,29 @@ def fit_powerlaw(model: SandNet.Model, quantity: str = 'size', plot: bool = True
     fit_parameter, loc, scale = pareto.fit(data, floc = 0, fscale = 1)
     #fix location and scale parameters for better fit
 
-    if plot:
-        if figure is None:
-            figure = plt.figure()
-        plt.figure(figure)
+    if figure is None:
+        figure = plt.figure()
+    plt.figure(figure)
 
-        #define the points where the fitted function is calculated for the plot. They are the same points
-        #of the avalanche size and avalanche area scatter plots
-        x = np.logspace(0, np.log10(max(data)))
+    #define the points where the fitted function is calculated for the plot. They are the same points
+    #of the avalanche size and avalanche area scatter plots
+    x = np.logspace(0, np.log10(max(data)))
     
-        #the last element of x is not included in the avalanche size and avalanche area plots, so we exclude it also
-        #from the fitted function
-        y_fit = pareto.pdf(x[:-1], fit_parameter, loc = loc, scale = scale)
-        plt.plot(x[:-1], y_fit, **kwargs)
+    #the last element of x is not included in the avalanche size and avalanche area plots, so we exclude it also
+    #from the fitted function
+    y_fit = pareto.pdf(x[:-1], fit_parameter, loc = loc, scale = scale)
+    plt.plot(x[:-1], y_fit, **kwargs)
 
-        if x_label is not None:
-            plt.xlabel(x_label)
-        if y_label is not None:
-            plt.ylabel(y_label)
-        if title is not None:
-            plt.title(title)
+    if x_label is not None:
+        plt.xlabel(x_label)
+    if y_label is not None:
+        plt.ylabel(y_label)
+    if title is not None:
+        plt.title(title)
 
-        plt.xscale("log")
-        plt.yscale("log")
-        plt.legend()
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.legend()
     
     return fit_parameter, figure
 
