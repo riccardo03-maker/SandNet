@@ -91,26 +91,6 @@ def test_classical_model_evolution():
     assert(model.network.nodes[(1, 2)]["grains"] == 1) #side
 
 
-def test_threshold_lower_than_neighbours():
-    '''
-    Tests the raise of an Exception when one node topples and it has a threshold lower than the number of neighbours,
-    so not all the neighbours can receive a grain
-
-    GIVEN: a sandpile model on a network of four nodes, with one central node connected to all the others, and 
-    a fixed threshold height of 2
-    WHEN: I evolve for 2 steps, adding all grains to the central node
-    THEN: at the second step the node topples, and since the number of neighbours is higher than the threshold,
-    the code raises an Exception
-    '''
-    G = nx.Graph()
-    G.add_nodes_from(range(4))
-    G.add_edges_from([(0,1), (1, 2), (1, 3)])
-    model = SandNet.Model(G, threshold_rule='fixed', threshold=2)
-
-    with(pytest.raises(Exception)):
-        model.evolve(2, evolve_mode='fixed', position = 1)
-
-
 def test_threshold_higher_than_neighbours():
     '''
     Tests the behaviour of the code when one node topples and it has a threshold higher than the number of neighbours,
@@ -222,6 +202,28 @@ def test_avoid_loop_with_boundaries():
 
     assert True #we just want to test that the code reaches the end
     
+
+def test_avalanche_with_neighbours_higher_than_threshold():
+    '''
+    Tests the correct behaviour of the code when a toppling occurs and the number of neighbours of the toppling node is higher than
+    the threshold of the toppling node, so only some neighbours receive a grain
+
+    GIVEN: a sandpile model on a fully connected network of 4 nodes (so each node has three neighbours), where each node has a fixed
+    threshold of 2, with 0 initial grains on each node
+    WHEN: I evolve for two steps adding all the grains on the same node
+    THEN: the node which has received the grains topples, loses all its grains and gives grains only to two of its neighbours
+    '''
+    G = nx.Graph()
+    G.add_nodes_from(range(4))
+    G.add_edges_from([(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)])
+    model = SandNet.Model(G, threshold_rule= 'fixed', threshold = 2)
+    assert(model.get_node_degree(2) == 3) #just a safety check on network building
+
+    model.evolve(2, evolve_mode='fixed', position = 2)
+    assert(model.network.nodes[2]["grains"] == 0)
+    assert(model.network.nodes[0]["grains"] + model.network.nodes[1]["grains"] + model.network.nodes[3]["grains"] == 2)
+    #check there are only two grains on the whole network, and they are not in node 2 which has toppled
+
 
 #Avalanche size calculation
 

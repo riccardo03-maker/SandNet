@@ -347,8 +347,8 @@ class Model:
         and these grains are given to the neighbours (one grain for each neighbour). This process can make other nodes topple, generating a cascade process called avalanche
         If the number of neighbours of the toppling node is 0, the code stops.
         If the number of neighbours of the toppling node is less than the threshold, one grain is given to each neighbour and the others are lost.
-        If the number of neighbours of the toppling node is higher than the threshold, so that it is not clear to which
-        neighbours the grains should be given
+        If the number of neighbours of the toppling node is higher than the threshold, only a number of neighbours
+        equal to the threshold chosen randomly will receive a grain
         
         Parameters
         ----------
@@ -368,17 +368,13 @@ class Model:
         -------
             Exception:
                 If the toppling node has no neighbours
-            Exception:
-                If the toppling node has a number of neighbours higher than its threshold
         Note: this function can also raise a RecursionError when the system remains trapped in a loop (i.e. an avalanche
         of infinite size). However, since the avalanche dynamics is implemented as a recursive function, Python will
         handle this situation automatically giving a RecursionError, so there is no need to implement it.
         '''
-        neighbours = list(self.network[node])
+        neighbours = self._select_neighbours(node)
         if not neighbours:
             raise Exception("Grains added on a node with no neighbours")
-        if(len(neighbours) > self.network.nodes[node]["threshold"]):
-            raise Exception("Number of neighbours higher than threshold")
         
         #avalanche_size and avalanche_area are not local variables because _avalanche method is recursive, so they would
         #be resetted to 0 at each call of the method
@@ -404,6 +400,35 @@ class Model:
                     self._avalanche(neighbour, lose_probability, step, avalanche_matrix)
             #we can use the recursion because of the Abelian property of sandpile model: avalanche dynamics
             #does not depend on the order of topplings
+
+
+    def _select_neighbours(self, node):
+        '''
+        Return the neighbours of a toppling node that will receive a grain
+
+        This method is called by the _avalanche method. When a node is toppling, it gives some of its grains to its
+        neighbours. If the number of neighbours is equal or lower than the threshold of the toppling node, all the
+        neighbours will receive a grain, while if the number of neighbours is higher than the threshold of the toppling
+        node, only a number of neighbours equal to the threshold will receive a grain. This method returns all the neighbours
+        of the node in the first case, and only a subset of the neighbours chosen randomly in the second case.
+
+        Parameters
+        -------
+           node:
+                The node that is toppling
+
+                Note: there is no specific type for the output, since the nodes of a nx.Graph can be of any type
+        Returns
+        -------
+            neighbours: list
+                The neighbours of the toppling node that will receive a grain (a number of neighbours equal to
+                the threshold of the toppling node chosen randomly if the threshold is lower than the number of neighbours,
+                or all the neighbours otherwise)
+        '''
+        neighbours = list(self.network[node])
+        if(len(neighbours) > self.network.nodes[node]["threshold"]):
+            neighbours = list(np.random.choice(neighbours, size = self.network.nodes[node]["threshold"], replace=False))
+        return neighbours
 
 
     def get_avalanche_areas(self) -> list:
