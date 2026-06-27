@@ -304,7 +304,7 @@ class Model:
                 position = np.random.randint(0, len(self.network.nodes))
             grain_positions = [position] * steps
         elif(evolve_mode == 'random'):
-            grain_positions = np.random.randint(0, len(self.network.nodes), size = steps)
+            grain_positions = list(np.random.randint(0, len(self.network.nodes), size = steps))
         else:
             raise ValueError("Invalid evolution rule")
         
