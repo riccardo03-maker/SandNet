@@ -24,7 +24,21 @@ def test_networks_with_different_length():
     model_2 = SandNet.Model(N = 2)
     model_3 = SandNet.Model(N = 3)
     with pytest.raises(ValueError):
-        SandNet.Multiplex(model_1, model_2, model_3)
+        SandNet.Multiplex([model_1, model_2, model_3])
+
+
+def test_longer_list_of_names():
+    '''
+    Tests the raise of a ValueError when the sandpile models provided as input for the multiplex model initialization
+    are less than the number of names provided
+
+    GIVEN: I am initializing a sandpile model on a multiplex network
+    WHEN: I give as input three models and four names
+    THEN: the code raises a ValueError
+    '''
+    model = SandNet.Model()
+    with pytest.raises(ValueError):
+        SandNet.Multiplex([model, model, model], names = ['a', 'b', 'c', 'd'])
 
 
 def test_multiplex_initialization():
@@ -36,8 +50,21 @@ def test_multiplex_initialization():
     THEN: the attribute all_models of the multiplex model initialized has length 5
     '''
     model = SandNet.Model()
-    multiplex = SandNet.Multiplex(model, model, model, model, model)
+    multiplex = SandNet.Multiplex([model, model, model, model, model])
     assert(len(multiplex.all_models) == 5)
+
+
+def test_correct_name_initialization():
+    '''
+    Tests the correct initialization of the names of sandpile models stored in an instance of the Multiplex class
+
+    GIVEN: I am initializing a sandpile model on a multiplex network
+    WHEN: I give as input three models and two names
+    THEN: the second name of the list corresponds to index 1 (which is the index of the second model in the list)
+    '''
+    model = SandNet.Model()
+    multiplex = SandNet.Multiplex([model, model, model], ["a", "b"])
+    assert(multiplex.model_names["b"] == 1)
 
 
 # Test retrieve and change of current model
@@ -66,18 +93,18 @@ def test_correct_get_model():
     G_2.add_edges_from([(0, 2)])
     model_1 = SandNet.Model(G_2)
 
-    multiplex = SandNet.Multiplex(model_1, model_2, model_3)
+    multiplex = SandNet.Multiplex([model_1, model_2, model_3])
     assert(multiplex.get_model().get_node_degree(1) == 2)
 
 
-def test_correct_change_of_current_model():
+def test_correct_change_of_current_model_by_index():
     '''
-    Tests the correct change of the current model stored in an instance of the Multiplex class
+    Tests the correct change of the current model stored using the index of the model in the list of stored models
 
     GIVEN: a sandpile model on a multiplex network, with three models stored. Each model is built on a network of
     three nodes, but in the first model the nodes are fully connected, in the second model there is only one connection
     for each node, and in the third model the nodes are disconnected
-    WHEN: I change the current model, choosing the third one, and ask for the degree of one of its nodes
+    WHEN: I change the current model using the index, choosing the third model, and ask for the degree of one of its nodes
     THEN: the obtained degree is 0
     '''
     G = nx.Graph()
@@ -93,9 +120,38 @@ def test_correct_change_of_current_model():
     G_2.add_edges_from([(0, 2)])
     model_1 = SandNet.Model(G_2)
 
-    multiplex = SandNet.Multiplex(model_1, model_2, model_3)
-    multiplex.change_current_model(2)
+    multiplex = SandNet.Multiplex([model_1, model_2, model_3])
+    multiplex.change_current_model_by_index(2)
     assert(multiplex.get_model().get_node_degree(1) == 0)
+
+
+def test_correct_change_of_current_model_by_name():
+    '''
+    Tests the correct change of the current model stored using the name of the model
+
+    GIVEN: a sandpile model on a multiplex network, with three models stored. Each model is built on a network of
+    three nodes, but in the first model the nodes are fully connected, in the second model there is only one connection
+    for each node, and in the third model the nodes are disconnected. The three models are given three names
+    WHEN: I change the current model using the name, choosing the second model, and ask for the degree of one of its nodes
+    which is not the central one
+    THEN: the obtained degree is 1
+    ''' 
+    G = nx.Graph()
+    G.add_nodes_from(range(3))
+    model_3 = SandNet.Model(G)
+
+    #need to copy the graph to another variable, otherwise also the network stored in model_3 is modified
+    G_1 = G.copy()
+    G_1.add_edges_from([(0, 1), (1, 2)])
+    model_2 = SandNet.Model(G_1)
+
+    G_2 = G_1.copy()
+    G_2.add_edges_from([(0, 2)])
+    model_1 = SandNet.Model(G_2)
+
+    multiplex = SandNet.Multiplex([model_1, model_2, model_3], names = ["a", "b", "c"])
+    multiplex.change_current_model_by_name("b")
+    assert(multiplex.get_model().get_node_degree(0) == 1)
 
 
 # Test addition of new model
@@ -110,7 +166,7 @@ def test_addition_of_new_model():
     THEN: the attribute all_models of the multiplex model, which had initially length 3, has now length 4
     '''
     model = SandNet.Model(N = 3)
-    multiplex = SandNet.Multiplex(model, model, model)
+    multiplex = SandNet.Multiplex([model, model, model])
     assert(len(multiplex.all_models) == 3)
 
     multiplex.add_model(model)
@@ -128,15 +184,30 @@ def test_addition_in_last_position():
     THEN: the degree of any one of the nodes of the current model is 0
     '''
     model = SandNet.Model(N = 3)
-    multiplex = SandNet.Multiplex(model, model, model)
+    multiplex = SandNet.Multiplex([model, model, model])
 
     G = nx.Graph()
     G.add_nodes_from(range(9))
     new_model = SandNet.Model(G)
     multiplex.add_model(new_model)
 
-    multiplex.change_current_model(3) #fourth element of the list
+    multiplex.change_current_model_by_index(3) #fourth element of the list
     assert(multiplex.get_model().get_node_degree(5) == 0)
+
+
+def test_name_of_new_added_model():
+    '''
+    Tests that the name given to the added stored model effectively corresponds to that model
+
+    GIVEN: an instance of the Multiplex class with three identical models stored and without names
+    WHEN: I add a new model identical to the other models stored, but I give this one a name
+    THEN: the name given to the new model corresponds to index 3 of the list of stored model (which is exactly the new model added)
+    '''
+    model = SandNet.Model(N = 3)
+    multiplex = SandNet.Multiplex([model, model, model])
+
+    multiplex.add_model(model, name = "a")
+    assert(multiplex.model_names["a"]  == 3)
 
 
 def test_addition_of_network_with_different_number_of_nodes():
@@ -150,7 +221,7 @@ def test_addition_of_network_with_different_number_of_nodes():
     THEN: the code raises a ValueError
     '''
     model = SandNet.Model(N = 3)
-    multiplex = SandNet.Multiplex(model, model, model)
+    multiplex = SandNet.Multiplex([model, model, model])
 
     G = nx.Graph()
     G.add_nodes_from(range(8))
