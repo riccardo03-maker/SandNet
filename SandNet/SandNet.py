@@ -93,7 +93,7 @@ class Model:
 
             Threshold: the threshold height of each node. During the evolution of the sandpile model, if the number
             of grains on a node is greater or equal than this threshold, the node topples, and its grains are distributed
-            among its neighbours
+            among its neighbours.
 
         Parameters
         ----------
@@ -104,7 +104,13 @@ class Model:
                     fixed: each node has the same threshold
                     degree: the threshold of each node is given by its degree
             threshold: int
-                The threshold of each node for the 'fixed' rule. If the threshold rule is not 'fixed', this parameter is ignored
+                The threshold of each node for the 'fixed' rule. If the threshold rule is not 'fixed', this parameter is ignored.
+                The fixed threshold must be strictly greater than 0, to avoid the creation of an infinite avalanche at the first
+                time step of evolution
+
+                Note: in the case of a degree dependent threshold, some nodes can have a threshold equal to 0. 
+                However, this is not an issue, since it means that the node has no neighbours, and this exception 
+                is already handled by the evolve method.
             initial_grains: {'zero', 'random'}
                 Selects how the initial number of grains is chosen:
                     zero: all nodes have 0 grains at the beginning
@@ -124,6 +130,8 @@ class Model:
                 If the input rule for initial grains is not an accepted one
         '''
         np.random.seed(seed)
+        if threshold < 1:
+            raise ValueError("Fixed threshold cannot be lower than 1")
 
         nodes = list(network.nodes)
         for i, node in enumerate(nodes):

@@ -103,6 +103,18 @@ def test_fixed_threshold():
     assert(model.network.nodes[np.random.randint(0, 10)]["threshold"] == 5)
 
 
+def test_fixed_threshold_lower_than_one():
+    '''
+    Tests the raise of ValueError when the input fixed threshold is lower than 1
+
+    GIVEN: I am initializing a SandNet.Model object
+    WHEN: the input value for the fixed threshold is lower than one
+    THEN: the code raises a ValueError
+    '''
+    with pytest.raises(ValueError):
+        SandNet.Model(threshold_rule = 'fixed', threshold = 0)
+                
+
 def test_degree_threshold():
     '''
     Tests the setting of a threshold equal to the degree of each node in the network of the model
