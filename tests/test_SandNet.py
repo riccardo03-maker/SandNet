@@ -343,7 +343,7 @@ def test_standard_creation_of_boundaries():
     assert(model.network.nodes[4]["threshold"] == 3)
 
 
-# Test threshold modification
+# Test threshold and number of grains modification
 
 
 def test_change_threshold():
@@ -358,6 +358,33 @@ def test_change_threshold():
     model.change_threshold([0, 4], 5) #correspond to nodes (0, 0) and (1, 1)
     assert(model.network.nodes[(0, 0)]["threshold"] == 5)
     assert(model.network.nodes[(1, 1)]["threshold"] == 5)
+
+
+def test_change_number_of_grains():
+    '''
+    Tests the correct change of the number of grains on one node
+
+    GIVEN: a sandpile model on a 3x3 grid network, with 0 initial grains on each node
+    WHEN: I want to change the number of grains on the central node to 3
+    THEN: the number of grains of that node becomes 3
+    '''
+    model = SandNet.Model(N = 3)
+    model.change_grains(index = 4, grains = 3) #4 is the index of the central node
+    assert(model.network.nodes[(1, 1)]["grains"] == 3)
+
+
+def test_wrong_new_number_of_grains():
+    '''
+    Tests the raise of a ValueError when trying to change the number of grains on one node to a number higher or equal than the threshold
+    of that node
+
+    GIVEN: a sandpile model on a 3x3 grid network, with 0 initial grains on each node
+    WHEN: I want to change the number of grains on the central node to 4
+    THEN: the code raises a ValueError
+    '''
+    model = SandNet.Model(N = 3)
+    with pytest.raises(ValueError):
+        model.change_grains(index = 4, grains = 4)
 
 
 # Testing node removal

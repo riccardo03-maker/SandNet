@@ -237,6 +237,27 @@ class Model:
             self.network.nodes[self.select_node_by_index(index)]["threshold"] = threshold
     
 
+    def change_grains(self, index: int, grains: int):
+        '''
+        Changes the number of grains on the node corresponding to the index given as input
+
+        The new number of grains must be strictly lower than the threshold of that node
+
+        Parameters:
+        ----------
+            index: int
+                The index of the node for which we want to change the number of grains
+            grains: int
+                The new number of grains that will be assigned to the selected node
+        Raises:
+        ----------
+            ValueError: if the new number of grains is not strictly lower than the threshold of the selected node
+        '''
+        if(grains >= self.network.nodes[self.select_node_by_index(index)]["threshold"]):
+            raise ValueError("Number of grains higher than threshold of selected node")
+        self.network.nodes[self.select_node_by_index(index)]["grains"] = grains
+    
+
     def remove_nodes_by_index(self, indexes: list):
         '''
         Removes one or more nodes in the network
