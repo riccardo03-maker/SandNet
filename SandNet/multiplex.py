@@ -118,14 +118,14 @@ class Multiplex():
             self.model_names.update({name : len(self.all_models) - 1})
     
 
-    def evolve_together(self, steps: int, together: bool = True, evolve_mode: str = 'random', position: int = None, lose_probability: float = None, 
-                        avalanche_matrix: bool = False):
+    def evolve_together(self, steps: int, together: bool = True, evolve_mode: str = 'random', position: int = None, layer: int = None, 
+                        lose_probability: float = None, avalanche_matrix: bool = False):
         '''
         Evolves the sandpile model on multiplex networks for a certain number of steps
 
         This method is analog to the evolve method of the Model class, but it evolves together all the different layers of the multiplex
         network. At each time step, a grain is added to a node of one of the layers of the multiplex network. The layer to which the grain
-        is added is selected randomly at each time step.
+        is added can be chosen to be always the same, or selected randomly at each time step.
 
         Moreover, it is possible to choose whether an avalanche starting in one layer also propagates to the other layers or not
 
@@ -140,14 +140,13 @@ class Multiplex():
                 Sets how the new grains are added
                     fixed: all grains are added in the same position, choosen according to the position parameter (see below)
                     random: grains at each step are added in random positions
-                
-                    Note: indipendently on the evolve_mode parameter, the layer in which the grain is added is chosen randomly at each time
-                    step. So if the evolve mode is fixed, the grain will always be added to the same position, but in different layers at
-                    each time step
             position: int (default: None)
                 The index of the node at which new grains are added.
                 If the evolve_mode is 'random', this parameter is ignored.
                 If the evolve mode is 'fixed' and position is None, one random position is selected
+            layer: int (default: None)
+                The layer of the multiplex network to which all new grains are added. If not provided, at each time step the layer to
+                which grains are added is chosen randomly.
             lose_probability: float (default: None)
                 The probability that a grain is lost during a toppling. This is useful if the network has no boundaries
                 to avoid the lock of the system into an avalanche of infinite size.
@@ -167,6 +166,8 @@ class Multiplex():
                 If the position selected does not exist
             ValueError:
                 If the probability to lose a grain is not between 0 and 1
+            ValueError:
+                If the layer selected does not exist in the multiplex network (means that it is not an existing index of the list of stored models)
         '''
         np.random.seed(self.seed)
         if(lose_probability is not None and (lose_probability < 0. or lose_probability > 1.)):
@@ -184,7 +185,7 @@ class Multiplex():
         #So in the first case we will have a list of the length of the steps with always the same element.
         #This is useful to write the same code in both the evolution modes
         if(evolve_mode == 'fixed'):
-            if(position >= total_number_of_nodes):
+            if(position >= total_number_of_nodes or position < 0):
                 raise ValueError("Position selected does not exist")
             if(position is None):
                 position = np.random.randint(0, total_number_of_nodes)
@@ -196,7 +197,12 @@ class Multiplex():
 
         #create then a list of layers where the grain will be added at each time step
         #At each time step the grain will be added in the position given by grain_position in the layer given by grain_layer
-        grain_layer = list(np.random.randint(0, len(self.all_models), size = steps))
+        if layer is not None:
+            if(layer >= len(self.all_models) or layer < 0):
+                raise ValueError("Selected layer does not exist in multiplex network")
+            grain_layer = [layer] * steps
+        else:
+            grain_layer = list(np.random.randint(0, len(self.all_models), size = steps))
         
         #Python has a default recursion limit of 1000. If more than 1000 functions are called at the same time,
         #Python gives a RecursionError. Since we can have very large avalanches for very large networks, we need

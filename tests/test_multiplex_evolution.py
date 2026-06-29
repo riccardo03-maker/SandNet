@@ -39,6 +39,20 @@ def test_incorrect_position_index():
         multiplex.evolve_together(steps = 50, evolve_mode = 'fixed', position = 25)
 
 
+def test_incorrect_layer():
+    '''
+    Tests the raise of a ValueError when the input layer in which new grains should be added does not exist
+
+    GIVEN: a multiplex sandpile model with three square grid networks 5x5
+    WHEN: the input value for the layer does not correspond to any layer of the multiplex network
+    THEN: the code raises a ValueError
+    '''
+    model=SandNet.Model()
+    multiplex = SandNet.Multiplex([model, model, model])
+    with pytest.raises(ValueError):
+        multiplex.evolve_together(steps = 50, layer = 5)
+
+
 def test_zero_degree_node_avalanche():
     '''
     Tests the raise of an Exception when the node from which an avalanche starts has no neighbours
@@ -227,6 +241,57 @@ def test_toppling_with_zero_grains():
     assert(model.network.nodes[(0, 1)]["grains"] == 3)
     assert(model.avalanche_size == 0)
     assert(model.avalanche_area == 0)
+
+
+def test_generic_case_of_multiplex_evolution():
+    '''
+    Tests the correct evolution of the sandpile model over a multiplex network in a generic case. The calculation of the correct evolution
+    of the system has been done by hand
+
+    GIVEN: a sandpile model over a multiplex network of 9 nodes with three layers. The first layer is a 3 x 3 grid, with a fixed threshold
+    of 4 and 3 grains for each node. The second layer is a network with a central node (of index 4, the same of the central node of the
+    first layer), and all the other nodes connected only to the central node, except for node 8 which has no links. The central node has
+    a threshold of 8 and 7 grains, while all the others have a threshold of 1 and 0 grains. The third layer is a 3 x 3 grid with zero grains
+    on each node
+    WHEN: I evolve for one step, putting one grain on the central node of the first layer
+    THEN: in the first layer all nodes topple once, except for the central node which topples twice, so the avalanche size is 10 and the
+    avalanche area is 9. There is a total of 16 grains left in the system. In the second layer all nodes topple twice, except for node 8 
+    which never topples, so the avalanche size is 16 and the avalanche area is 8. There are 7 grains in the system, all on the central node.
+    In the third layer nothing happens, so avalanche size and area are 0, as well as the grains on each node
+    '''
+    model_1 = SandNet.Model(N = 3)
+    for index in range(9):
+        model_1.change_grains(index = index, grains = 3)
+    
+    G = nx.Graph()
+    G.add_nodes_from(range(9))
+    G.add_edges_from([(0, 4), (1, 4), (2, 4), (3, 4), (5, 4), (6, 4), (7, 4)])
+    model_2 = SandNet.Model(G, threshold = 1)
+    model_2.change_threshold(indexes = [4], threshold = 8)
+    model_2.change_grains(index = 4, grains = 7)
+
+    model_3 = SandNet.Model(N = 3)
+
+    multiplex = SandNet.Multiplex([model_1, model_2, model_3], ["first", "second", "third"])
+    multiplex.evolve_together(1, together = True, evolve_mode='fixed', position = 4, layer = 0, avalanche_matrix=True)
+
+    assert(model_1.avalanche_sizes_collector[0] == 10)
+    assert(model_1.avalanche_areas_collector[0] == 9)
+    assert(model_1.avalanche_matrix[0, 4] == 2)
+    assert(model_1.avalanche_matrix[0, 0] == 1)
+    assert(model_1.get_total_grains() == 16)
+
+    assert(model_2.avalanche_sizes_collector[0] == 16)
+    assert(model_2.avalanche_areas_collector[0] == 8)
+    assert(model_2.avalanche_matrix[0, 4] == 2)
+    assert(model_2.avalanche_matrix[0, 0] == 2)
+    assert(model_2.avalanche_matrix[0, 8] == 0)
+    assert(model_2.get_total_grains() == 7)
+    assert(model_2.network.nodes[model_2.select_node_by_index(4)]["grains"] == 7)
+    
+    assert(model_3.avalanche_sizes_collector[0] == 0)
+    assert(model_3.avalanche_areas_collector[0] == 0)
+    assert(model_3.get_total_grains() == 0)
 
 
 
