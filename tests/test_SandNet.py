@@ -421,3 +421,22 @@ def test_index_assignment_after_node_removal():
     model.remove_nodes_by_index([1])
 
     assert(model.network.nodes[2]["index"] == 1)
+
+
+# Testing count of total number of grains
+
+
+def test_total_number_of_grains():
+    '''
+    Tests the correct retrieval of the total number of grains in a sandpile model network
+
+    GIVEN: a sandpile model on a 3 x 3 square grid, with two grains on a node and one grain on all the others
+    WHEN: I get the total number of grains in the system
+    THEN: I obtain 10
+    '''
+    model = SandNet.Model(N = 3, initial_grains='zero')
+    model.change_grains(index = 3, grains = 2)
+    for index in [0, 1, 2, 4, 5, 6, 7, 8]:
+        model.change_grains(index = index, grains = 1)
+    
+    assert(model.get_total_grains() == 10)

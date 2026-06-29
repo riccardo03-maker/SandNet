@@ -518,6 +518,18 @@ class Model:
                 The degree of the selected node
         '''
         return self.network.degree[self.select_node_by_index(index)] 
+
+
+    def get_total_grains(self) -> int:
+        '''
+        Return the total number of grains in the sandpile model network
+
+        Returns:
+        ----------
+            grains: int
+                The total number of grains in the system
+        '''
+        return sum([self.network.nodes[node]["grains"] for node in self.network.nodes])
     
 
     def find_boundaries(self) -> list:
