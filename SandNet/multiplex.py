@@ -53,65 +53,43 @@ class Multiplex():
         number_of_nodes = np.array([model.get_number_of_nodes() for model in self.all_models])
         if(len(np.unique(number_of_nodes)) > 1):
             raise ValueError("Provided networks do not have all the same number of nodes")
-        
-        self.current_model = self.all_models[0]
-        #this is the current model we can modify using Model class methods. A method of the Multiplex class allows
-        #to switch the current model
-
-        self.current_model_index = 0
-        #this is the index of the current model in the list of models stored
 
         self.seed = seed
     
 
-    def get_model(self) -> Model:
+    def get_model(self, name: str = None, index: int = None) -> Model:
         '''
-        Returns the model stored in the current_model attribute
+        Returns one of the model stored in the list of models
 
         This method allows to get one of the models stored in a Multiplex instance, and then to modify it using
-        the methods of the Model class. The model that is returned (the current model) is always the first one in the list of models
-        provided as input during the initialization, unless the current model has been modified using the change_current_model method
+        the methods of the Model class. The model to be returned can be selected through its index in the list of models stored, or
+        through its name (if provided)
+
+        Parameters
+        ----------
+            name: str (default = None)
+                The name of the model to be returned. This name can be assigned during the initialization of the Multiplex
+                instance, or when the model is added through the add_model method
+            index: int (default: None)
+                The index of the list of models stored corresponding to the model to be returned. If the parameter 'name' is provided,
+                this parameter is ignored
 
         Returns
-        ----------
-            current_model: SandNet.Model
-                The sandpile model stored in the current_model attribute
+        -------
+            model: SandNet.Model
+                The selected sandpile model stored in the current instance of the Multiplex class
+        Raises
+        -------
+            TypeError:
+                If neither 'name' nor 'index' arguments are provided
         '''
-        return self.current_model
-
-
-    def change_current_model_by_index(self, model_position: int):
-        '''
-        Changes the current model, selecting the new current model through the index it has in the list of stored models
-
-        This method allows to change the model that is returned by the get_model method, choosing from the stored models
-
-        Parameters
-        ----------
-            model_position: int
-                The position of the model in the list of models stored in the current instance of this class.
-                This position depends on the order the models were given as arguments during the initialization of the instance
-                (the first argument is in position 0, the second in position 1 and so on)
-        '''
-        self.current_model = self.all_models[model_position]
-        self.current_model_index = model_position
-    
-
-    def change_current_model_by_name(self, model_name: str):
-        '''
-        Changes the current model, selecting the new current model through its name
-
-        This method allows to change the model that is returned by the get_model method, choosing from the stored models
-        that have a corresponding name
-
-        Parameters
-        ----------
-            model_name: str
-                The name of the new current model
-        '''
-        model_position = self.model_names[model_name]
-        self.current_model = self.all_models[model_position]
-        self.current_model_index = model_position
+        if name is not None:
+            model_position = self.model_names[name]
+            return self.all_models[model_position]
+        elif index is not None:
+            return self.all_models[index]
+        else:
+            raise TypeError("One argument between name and index must be provided")
     
 
     def add_model(self, model: Model, name: str = None):
@@ -127,13 +105,13 @@ class Multiplex():
                 The name of the added sandpile model
         Raises
         -------
-        ValueError:
-            If the network structure of the new sandpile model does not have the same number of nodes of the network
-            structures of the other models stored
+            ValueError:
+                If the network structure of the new sandpile model does not have the same number of nodes of the network
+                structures of the other models stored
         '''
-        if(model.get_number_of_nodes() != self.current_model.get_number_of_nodes()):
+        if(model.get_number_of_nodes() != self.get_model(index = 0).get_number_of_nodes()):
             raise ValueError("Provided network has a different number of nodes with respect to the others")
-        # just check one of the stored models, the other have the same number of nodes
+        # just check the first stored models, the others have the same number of nodes
 
         self.all_models.append(model)
         if name is not None:
@@ -198,19 +176,21 @@ class Multiplex():
             #initialize the avalanche matrix for each layer: each row is a step of evolution and each column is a node
             for model in self.all_models:
                 model.avalanche_matrix = lil_matrix((steps, model.get_number_of_nodes()), dtype = np.int32)
+        
+        total_number_of_nodes = self.get_model(index = 0).get_number_of_nodes()
 
         #for both 'fixed' and 'random' evolutions, we create a list of indexes of nodes
         #where the grain will be added at each step.
         #So in the first case we will have a list of the length of the steps with always the same element.
         #This is useful to write the same code in both the evolution modes
         if(evolve_mode == 'fixed'):
-            if(position >= self.get_model().get_number_of_nodes()):
+            if(position >= total_number_of_nodes):
                 raise ValueError("Position selected does not exist")
             if(position is None):
-                position = np.random.randint(0, self.get_model().get_number_of_nodes())
+                position = np.random.randint(0, total_number_of_nodes)
             grain_positions = [position] * steps
         elif(evolve_mode == 'random'):
-            grain_positions = list(np.random.randint(0, self.get_model().get_number_of_nodes(), size = steps))
+            grain_positions = list(np.random.randint(0, total_number_of_nodes, size = steps))
         else:
             raise ValueError("Invalid evolution rule")
 
@@ -224,13 +204,12 @@ class Multiplex():
         #of layers. If this dimension is lower than 500, we leave the default recursion limit, otherwise we increase it to two times
         #this dimension. If the method _avalanche_together is called a higher number of times than this limit, it is reasonable to 
         #think that the system is trapped into an avalanche of infinite size, and then it is correct to raise a RecursionError
-        multiplex_network_dimension = self.get_model().get_number_of_nodes() * len(self.all_models)
+        multiplex_network_dimension = total_number_of_nodes * len(self.all_models)
         if(multiplex_network_dimension > 500):
             sys.setrecursionlimit(2 * multiplex_network_dimension)
 
         for step, index in enumerate(grain_positions):
-            self.change_current_model_by_index(grain_layer[step])
-            current_model = self.get_model()
+            current_model = self.get_model(index = grain_layer[step])
             #this assignment in Python is just a reference, not a copy of the variable, so by modifying the current_model variable
             #also the corresponding model stored in the current Multiplex instance is modified 
 
@@ -239,7 +218,7 @@ class Multiplex():
 
             if(current_model.network.nodes[node]["grains"] >= current_model.network.nodes[node]["threshold"]):
                 if(together):
-                    self._avalanche_together(node, lose_probability, step, avalanche_matrix)
+                    self._avalanche_together(node, grain_layer[step], lose_probability, step, avalanche_matrix)
                 else:
                     current_model._avalanche(node, lose_probability, step, avalanche_matrix)
                     #if 'together' is False, the avalanche is not propagated to other layers, so the _avalanche method of the Model
@@ -255,7 +234,7 @@ class Multiplex():
         sys.setrecursionlimit(1000)
 
 
-    def _avalanche_together(self, node, lose_probability: float, step: int, avalanche_matrix: bool):
+    def _avalanche_together(self, node, layer: int, lose_probability: float, step: int, avalanche_matrix: bool):
         '''
         Computes an avalanche, and propagates it to the other layers
 
@@ -280,6 +259,9 @@ class Multiplex():
             node:
                 The node that is toppling
                 Note: there is no specific type for the output, since the nodes of a nx.Graph can be of any type
+            layer:
+                The layer of the multiplex network with the in which the grain was added and that is toppling. This parameter is directly
+                passed from the evolve_together function 
             lose_probability: float
                 The probability that a grain is lost during a toppling. This parameter is directly passed from
                 the evolve_together function
@@ -297,9 +279,8 @@ class Multiplex():
         of infinite size). However, since the avalanche dynamics is implemented as a recursive function, Python will
         handle this situation automatically giving a RecursionError, so there is no need to implement it.
         '''
-        other_models = [model for i, model in enumerate(self.all_models) if i != self.current_model_index]
-        current_model = self.get_model()
-        #the current model is still the one where the grain was added at the current time step
+        current_model = self.get_model(index = layer)
+        other_models = [model for i, model in enumerate(self.all_models) if i != layer]
 
         #first propagate the toppling to other layers. Starting from the other layers is simpler because they cannot propagate
         #eventual other topplings to the other layers
@@ -341,7 +322,7 @@ class Multiplex():
             if(is_grain_passed[i]):
                 current_model.network.nodes[neighbour]["grains"] += 1
                 if(current_model.network.nodes[neighbour]["grains"] >= current_model.network.nodes[neighbour]["threshold"]):
-                    self._avalanche_together(neighbour, lose_probability, step, avalanche_matrix)
+                    self._avalanche_together(neighbour, layer, lose_probability, step, avalanche_matrix)
             #we can use the recursion because of the Abelian property of sandpile model: avalanche dynamics
             #does not depend on the order of topplings
 

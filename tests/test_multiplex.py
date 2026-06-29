@@ -70,41 +70,14 @@ def test_correct_name_initialization():
 # Test retrieve and change of current model
 
 
-def test_correct_get_model():
+def test_correct_get_model_by_index():
     '''
-    Tests the correct retrieve of the current model stored in an instance of the Multiplex class
+    Tests the correct return of a model stored using the index of the model in the list of stored models
 
     GIVEN: a sandpile model on a multiplex network, with three models stored. Each model is built on a network of
     three nodes, but in the first model the nodes are fully connected, in the second model there is only one connection
     for each node, and in the third model the nodes are disconnected
-    WHEN: I get the degree of one of the nodes of the current model
-    THEN: the obtained degree is 2 (the current model is chosen as the first model provided as argument during
-    multiplex model initialization)
-    '''
-    G = nx.Graph()
-    G.add_nodes_from(range(3))
-    model_3 = SandNet.Model(G)
-
-    G_1 = G.copy()
-    G_1.add_edges_from([(0, 1), (1, 2)])
-    model_2 = SandNet.Model(G_1)
-
-    G_2 = G_1.copy()
-    G_2.add_edges_from([(0, 2)])
-    model_1 = SandNet.Model(G_2)
-
-    multiplex = SandNet.Multiplex([model_1, model_2, model_3])
-    assert(multiplex.get_model().get_node_degree(1) == 2)
-
-
-def test_correct_change_of_current_model_by_index():
-    '''
-    Tests the correct change of the current model stored using the index of the model in the list of stored models
-
-    GIVEN: a sandpile model on a multiplex network, with three models stored. Each model is built on a network of
-    three nodes, but in the first model the nodes are fully connected, in the second model there is only one connection
-    for each node, and in the third model the nodes are disconnected
-    WHEN: I change the current model using the index, choosing the third model, and ask for the degree of one of its nodes
+    WHEN: I get the third model stored using the index, and ask for the degree of one of its nodes
     THEN: the obtained degree is 0
     '''
     G = nx.Graph()
@@ -121,19 +94,18 @@ def test_correct_change_of_current_model_by_index():
     model_1 = SandNet.Model(G_2)
 
     multiplex = SandNet.Multiplex([model_1, model_2, model_3])
-    multiplex.change_current_model_by_index(2)
-    assert(multiplex.get_model().get_node_degree(1) == 0)
+    returned_model = multiplex.get_model(index = 2)
+    assert(returned_model.get_node_degree(1) == 0)
 
 
-def test_correct_change_of_current_model_by_name():
+def test_correct_get_model_by_name():
     '''
-    Tests the correct change of the current model stored using the name of the model
+    Tests the correct return of a model stored using the name of that model
 
     GIVEN: a sandpile model on a multiplex network, with three models stored. Each model is built on a network of
     three nodes, but in the first model the nodes are fully connected, in the second model there is only one connection
     for each node, and in the third model the nodes are disconnected. The three models are given three names
-    WHEN: I change the current model using the name, choosing the second model, and ask for the degree of one of its nodes
-    which is not the central one
+    WHEN: I get the second model using its name, and ask for the degree of one of its nodes which is not the central one
     THEN: the obtained degree is 1
     ''' 
     G = nx.Graph()
@@ -150,24 +122,22 @@ def test_correct_change_of_current_model_by_name():
     model_1 = SandNet.Model(G_2)
 
     multiplex = SandNet.Multiplex([model_1, model_2, model_3], names = ["a", "b", "c"])
-    multiplex.change_current_model_by_name("b")
-    assert(multiplex.get_model().get_node_degree(0) == 1)
+    returned_model = multiplex.get_model(name = "b")
+    assert(returned_model.get_node_degree(0) == 1)
 
 
-def test_correct_change_of_index_of_current_model():
+def test_get_model_with_no_arguments_provided():
     '''
-    Tests the correct change of the index of the current model when the current model is changed
+    Tests the raise of a TypeError when the get_model method is called without providing neither index nor name
 
-    GIVEN: a sandpile model on a multiplex network with three identical layers of 5 x 5 grids
-    WHEN: I change the current model to the second element of the list of stored models
-    THEN: the index of the current model, which was initially 0, becomes 1
-    '''
+    GIVEN: an arbitrary sandpile model on a multiplex network
+    WHEN: I get one of the model stored, but provide no arguments to the get_model method
+    THEN: the code raises a TypeError
+    ''' 
     model = SandNet.Model()
-    multiplex = SandNet.Multiplex([model, model, model])
-    assert(multiplex.current_model_index == 0)
-
-    multiplex.change_current_model_by_index(1)
-    assert(multiplex.current_model_index == 1)
+    multiplex = SandNet.Multiplex([model, model])
+    with pytest.raises(TypeError):
+        multiplex.get_model()
 
 
 # Test addition of new model
@@ -207,8 +177,7 @@ def test_addition_in_last_position():
     new_model = SandNet.Model(G)
     multiplex.add_model(new_model)
 
-    multiplex.change_current_model_by_index(3) #fourth element of the list
-    assert(multiplex.get_model().get_node_degree(5) == 0)
+    assert(multiplex.get_model(index = 3).get_node_degree(5) == 0)
 
 
 def test_name_of_new_added_model():
