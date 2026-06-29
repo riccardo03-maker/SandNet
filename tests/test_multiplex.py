@@ -154,6 +154,22 @@ def test_correct_change_of_current_model_by_name():
     assert(multiplex.get_model().get_node_degree(0) == 1)
 
 
+def test_correct_change_of_index_of_current_model():
+    '''
+    Tests the correct change of the index of the current model when the current model is changed
+
+    GIVEN: a sandpile model on a multiplex network with three identical layers of 5 x 5 grids
+    WHEN: I change the current model to the second element of the list of stored models
+    THEN: the index of the current model, which was initially 0, becomes 1
+    '''
+    model = SandNet.Model()
+    multiplex = SandNet.Multiplex([model, model, model])
+    assert(multiplex.current_model_index == 0)
+
+    multiplex.change_current_model_by_index(1)
+    assert(multiplex.current_model_index == 1)
+
+
 # Test addition of new model
 
 

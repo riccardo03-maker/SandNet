@@ -393,6 +393,11 @@ class Model:
         of infinite size). However, since the avalanche dynamics is implemented as a recursive function, Python will
         handle this situation automatically giving a RecursionError, so there is no need to implement it.
         '''
+        if(self.network.nodes[node]["grains"] == 0):
+            return None
+        #if the toppling node has no grains (as it could happen for sandpile model on multiplex networks), the avalanche directly
+        #stops, and the avalanche size and area are 0 (because no toppling occurred)
+
         neighbours = self._select_neighbours(node)
         if not neighbours:
             raise Exception("Grains added on a node with no neighbours")
@@ -409,6 +414,10 @@ class Model:
             #counts the total number of node that have toppled
 
         self.network.nodes[node]["grains"] -= self.network.nodes[node]["threshold"]
+        if(self.network.nodes[node]["grains"] < 0):
+            self.network.nodes[node]["grains"] = 0
+            #avoid negative grains in case toppling occurs with grains lower than threshold
+            #useful when this method is used for multiplex networks
 
         if(lose_probability is not None):
             is_grain_passed = list(np.random.uniform(size = len(neighbours)) > lose_probability)
@@ -430,10 +439,10 @@ class Model:
         Return the neighbours of a toppling node that will receive a grain
 
         This method is called by the _avalanche method. When a node is toppling, it gives some of its grains to its
-        neighbours. If the number of neighbours is equal or lower than the threshold of the toppling node, all the
-        neighbours will receive a grain, while if the number of neighbours is higher than the threshold of the toppling
-        node, only a number of neighbours equal to the threshold will receive a grain. This method returns all the neighbours
-        of the node in the first case, and only a subset of the neighbours chosen randomly in the second case.
+        neighbours. If the number of neighbours is equal or lower than the number of grains lost by the toppling node, all the
+        neighbours will receive a grain, while if the number of neighbours is higher than the number of grains lost by the toppling
+        node, only a subset of neighbours will receive a grain. This method returns all the neighbours of the node in the first case, 
+        and a subset of the neighbours chosen randomly in the second case.
 
         Parameters
         -------
@@ -445,12 +454,17 @@ class Model:
         -------
             neighbours: list
                 The neighbours of the toppling node that will receive a grain (a number of neighbours equal to
-                the threshold of the toppling node chosen randomly if the threshold is lower than the number of neighbours,
+                the number of grains lost by the toppling node if this number is lower than the number of neighbours,
                 or all the neighbours otherwise)
         '''
         neighbours = list(self.network[node])
-        if(len(neighbours) > self.network.nodes[node]["threshold"]):
-            neighbours = list(np.random.choice(neighbours, size = self.network.nodes[node]["threshold"], replace=False))
+
+        #statement must be True when the number of neighbours is higher than the number of grains that will be lost by
+        #the toppling node, which is the minimum between the threshold and the number of grains of that node
+        number_of_grains_lost = min(self.network.nodes[node]["threshold"], self.network.nodes[node]["grains"])
+        if(len(neighbours) > number_of_grains_lost):
+            neighbours_indexes = np.random.choice([i for i in range(len(neighbours))], size = number_of_grains_lost, replace=False)
+            neighbours = [neighbour for i, neighbour in enumerate(neighbours) if i in neighbours_indexes]
         return neighbours
 
 
