@@ -259,7 +259,7 @@ def test_correct_node_count():
     assert(model.get_number_of_nodes() == 25)
 
 
-#Testing node degree retrieval
+#Testing node features retrieval
 
 
 def test_correct_node_degree_retrieval():
@@ -276,7 +276,7 @@ def test_correct_node_degree_retrieval():
     assert(model.get_node_degree(4) == 4) #index 4 is the (1, 1) node of the grid, the center
 
 
-def test_incorrect_input_index():
+def test_incorrect_input_index_get_degree():
     '''
     Tests the raise of a ValueError when using the get_node_degree method with an input index not associated to
     any node
@@ -286,7 +286,39 @@ def test_incorrect_input_index():
     THEN: the code raises a ValueError
     '''
     with(pytest.raises(ValueError)):
-       SandNet.Model().get_node_degree(25) 
+       SandNet.Model().get_node_degree(25)
+
+
+def test_correct_node_grains_retrieval():
+    '''
+    Tests the correct retrieval of the number of grains of one or more nodes
+
+    GIVEN: a sandpile model on a network with 3 nodes and 0 grains on each node
+    WHEN: I want to obtain the number of grains of one random node
+    THEN: I obtain 0 grains
+
+    Note: in the test I check one random node of the network. The node checked could change at any
+    repetition of the test, but this does not matter since all nodes must have 0 grains
+    '''
+    G = nx.Graph()
+    G.add_nodes_from(range(3))
+    model = SandNet.Model(G, initial_grains='zero')
+    assert(model.get_node_grains(np.random.randint(0, 3)) == 0)
+
+
+def test_correct_node_threshold_retrieval():
+    '''
+    Tests the correct retrieval of the threshold of one or more nodes
+
+    GIVEN: a sandpile model on a 3x3 grid network with threshold equal to the degree
+    WHEN: I want to obtain the threshold of three nodes: the center, one side and one vertex
+    THEN: I obtain threshold of 4 for the center, 3 for the side and 2 for the vertex
+    '''
+    model = SandNet.Model(N = 3, threshold_rule='degree')
+    thresholds = model.get_node_threshold([4, 1, 0]) #4 is the center, 1 is a side and 0 is a vertex
+    assert(thresholds[0] == 4)
+    assert(thresholds[1] == 3)
+    assert(thresholds[2] == 2)
 
 
 #Testing detection and creation of network boundaries
