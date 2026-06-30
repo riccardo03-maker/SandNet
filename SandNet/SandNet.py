@@ -594,6 +594,18 @@ class Model:
         return self.avalanche_sizes_collector
     
 
+    def get_avalanche_matrix(self) -> list:
+        '''
+        Return the avalanche matrix (number of topplings per node at each time step) measured during model evolution
+
+        Returns
+        -------
+            avalanche_matrix: scipy.sparse.lil_matrix
+                The avalanche matrix measured during model evolution
+        '''
+        return self.avalanche_matrix
+    
+
     def find_boundaries(self) -> list:
         '''
         Finds the boundaries of the sandpile model network

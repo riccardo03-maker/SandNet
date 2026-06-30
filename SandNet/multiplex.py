@@ -57,6 +57,31 @@ class Multiplex():
         self.seed = seed
     
 
+    def get_all_models(self) -> list:
+        '''
+        Returns the list with all the models stored in the current Multiplex instance
+
+        Returns
+        -------
+            all_models: list of SandNet.Model
+                The list of all sandpile models stored in the current instance of the Multiplex class
+        '''
+        return self.all_models
+    
+
+    def get_model_names(self) -> dict:
+        '''
+        Returns a dictionary with all the names of the stored models as keys and the corresponding position in the list of all models
+        as values. If no model has been given a name, an empty dictionary is returned
+
+        Returns
+        -------
+            model_names: dict
+                The dictionary of names of the models stored in the current instance of the Multiplex class
+        '''
+        return self.model_names
+
+
     def get_model(self, name: str = None, index: int = None) -> Model:
         '''
         Returns one of the model stored in the list of models
