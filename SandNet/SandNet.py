@@ -154,6 +154,18 @@ class Model:
                 raise ValueError("Wrong input for initial_grains")
 
         return network
+    
+
+    def get_network(self) -> nx.Graph:
+        '''
+        Returns the network structure of the sandpile model
+
+        Returns
+        -------
+            network: nx.Graph
+                The network structure of the current Model instance
+        '''
+        return self.network
 
 
     def select_node_by_index(self, index: int):

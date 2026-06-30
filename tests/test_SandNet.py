@@ -10,7 +10,31 @@ from collections import Counter
 __author__=['Riccardo Grandicelli']
 __email__=['riccardograndicelli03@gmail.com']
 
+
+# Testing network retrieval
+
+
+def test_get_network():
+    '''
+    Tests the correct retrieval of the network structure of the sandpile model
+
+    GIVEN: a SandNet.Model object with a certain network structure
+    WHEN: I get the network structure of the sandpile model
+    THEN: I obtain a network equal to the one given as input
+
+    Note: the graph given as input for the initialization of the SandNet.Model object is different at any repetition of the test,
+    but this is not an issue since we are only testing the equivalence between the input and output networks
+    '''
+    G = nx.fast_gnp_random_graph(1000, 0.4) #a random graph generator from networkx
+    model = SandNet.Model(G)
+    network = model.get_network()
+    assert(nx.is_isomorphic(G, network))
+    #True if the two graphs are isomorphic. We cannot verify the perfect equality, since some attributes (threshold and grains) have
+    #been added to the network during model initialization, so the two networks will not be exactly equal.
+
+
 # Testing initialization of SandNet.Model
+
 
 def test_default_square_lattice_model():
     '''
