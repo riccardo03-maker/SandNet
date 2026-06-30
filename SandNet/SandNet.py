@@ -248,18 +248,21 @@ class Model:
 
     def get_node_degree(self, index: int) -> int:
         '''
-        Return the degree of a node in the sandpile model network
+        Return the degree of the node or list of nodes provided
 
         Parameters:
         ----------
-            index: int
-                The index of the node whose degree we want to know
+            index: int (or list of integers)
+                The index (or list of indexes) of the node(s) whose degree has to be returned
         Returns:
         ----------
             degree: int
-                The degree of the selected node
+                The degree of the selected node(s)
         '''
-        return self.network.degree[self.select_node_by_index(index)]
+        if isinstance(index, (list, tuple, np.ndarray)):
+            return [self.network.degree[self.select_node_by_index(i)] for i in index]
+        else:
+            return self.network.degree[self.select_node_by_index(index)]
     
 
     def get_node_threshold(self, index: int) -> int:
@@ -269,7 +272,7 @@ class Model:
         Parameters:
         ----------
             index: int (or list of integers)
-                The index (or indexes) of the node(s) whose threshold has to be returned
+                The index (or list of indexes) of the node(s) whose threshold has to be returned
         Returns:
         ----------
             threshold: int (or list of integers)
@@ -281,7 +284,6 @@ class Model:
             return self.network.nodes[self.select_node_by_index(index)]["threshold"]
 
 
-
     def get_node_grains(self, index: int) -> int:
         '''
         Return the number of grains of the node or list of nodes provided
@@ -289,7 +291,7 @@ class Model:
         Parameters:
         ----------
             index: int (or list of integers)
-                The index (or indexes) of the node(s) whose number of nodes has to be returned
+                The index (or list of indexes) of the node(s) whose number of nodes has to be returned
         Returns:
         ----------
             grains: int (or list of integers)
@@ -311,30 +313,6 @@ class Model:
                 The total number of grains in the system
         '''
         return sum([self.network.nodes[node]["grains"] for node in self.network.nodes])
-
-
-    def get_avalanche_areas(self) -> list:
-        '''
-        Return the list with all the avalanche areas measured during model evolution
-
-        Returns
-        -------
-            avalanche_areas: list of integers
-                The values of avalanche areas measured during model evolution
-        '''
-        return self.avalanche_areas_collector
-
-
-    def get_avalanche_sizes(self) -> list:
-        '''
-        Return the list with all the avalanche sizes measured during model evolution
-
-        Returns
-        -------
-            avalanche_sizes: list of integers
-                The values of avalanche sizes measured during model evolution
-        '''
-        return self.avalanche_sizes_collector
 
 
     def change_threshold(self, indexes: list, threshold: int):
@@ -581,6 +559,30 @@ class Model:
             neighbours_indexes = np.random.choice([i for i in range(len(neighbours))], size = number_of_grains_lost, replace=False)
             neighbours = [neighbour for i, neighbour in enumerate(neighbours) if i in neighbours_indexes]
         return neighbours
+    
+
+    def get_avalanche_areas(self) -> list:
+        '''
+        Return the list with all the avalanche areas measured during model evolution
+
+        Returns
+        -------
+            avalanche_areas: list of integers
+                The values of avalanche areas measured during model evolution
+        '''
+        return self.avalanche_areas_collector
+
+
+    def get_avalanche_sizes(self) -> list:
+        '''
+        Return the list with all the avalanche sizes measured during model evolution
+
+        Returns
+        -------
+            avalanche_sizes: list of integers
+                The values of avalanche sizes measured during model evolution
+        '''
+        return self.avalanche_sizes_collector
     
 
     def find_boundaries(self) -> list:
