@@ -315,18 +315,21 @@ class Model:
         return sum([self.network.nodes[node]["grains"] for node in self.network.nodes])
 
 
-    def change_threshold(self, indexes: list, threshold: int):
+    def change_threshold(self, index: list, threshold: int):
         '''
-        Changes the threshold of the nodes corresponding to the indexes given as input
+        Changes the threshold of the node corresponding to the index given as input
 
         Parameters:
         ----------
-            indexes: list of integers
-                The indexes of the nodes for which we want to change the threshold
+            index: int (or list of integers)
+                The index (or list of indexes) of the node(s) whose threshold has to be changed
             threshold: int
-                The new value of threshold that will be assigned to the selected nodes
+                The new value of threshold that will be assigned to the selected node(s)
         '''
-        for index in indexes:
+        if isinstance(index, (list, tuple, np.ndarray)):
+            for i in index:
+                self.network.nodes[self.select_node_by_index(i)]["threshold"] = threshold
+        else:
             self.network.nodes[self.select_node_by_index(index)]["threshold"] = threshold
     
 
@@ -338,17 +341,23 @@ class Model:
 
         Parameters:
         ----------
-            index: int
-                The index of the node for which we want to change the number of grains
+            index: int (or list of integers)
+                The index (or list of indexes) of the node(s) whose number of grains has to be changed
             grains: int
-                The new number of grains that will be assigned to the selected node
+                The new number of grains that will be assigned to the selected node(s)
         Raises:
         ----------
             ValueError: if the new number of grains is not strictly lower than the threshold of the selected node
         '''
-        if(grains >= self.network.nodes[self.select_node_by_index(index)]["threshold"]):
-            raise ValueError("Number of grains higher than threshold of selected node")
-        self.network.nodes[self.select_node_by_index(index)]["grains"] = grains
+        if isinstance(index, (list, tuple, np.ndarray)):
+            for i in index:
+                if(grains >= self.network.nodes[self.select_node_by_index(i)]["threshold"]):
+                    raise ValueError("Number of grains higher than threshold of one of the selected nodes")
+                self.network.nodes[self.select_node_by_index(i)]["grains"] = grains
+        else:
+            if(grains >= self.network.nodes[self.select_node_by_index(index)]["threshold"]):
+                    raise ValueError("Number of grains higher than threshold of the selected node")
+            self.network.nodes[self.select_node_by_index(index)]["grains"] = grains
     
 
     def remove_nodes_by_index(self, indexes: list):
