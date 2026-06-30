@@ -48,10 +48,10 @@ def test_default_square_lattice_model():
     model = SandNet.Model()
 
     #check we have 25 nodes
-    assert(len(model.network.nodes) == 25)
+    assert(len(model.get_network().nodes) == 25)
 
     #check we only have nodes with the right degrees
-    all_degrees = dict(model.network.degree()).values() #degrees of all nodes in the network
+    all_degrees = dict(model.get_network().degree()).values() #degrees of all nodes in the network
     degree_counts = Counter(all_degrees) #counts how many times a degree value appears in the network
     assert(degree_counts[2] == 4)
     assert(degree_counts[3] == 12)
@@ -73,7 +73,7 @@ def test_zero_grains():
     G=nx.Graph()
     G.add_nodes_from(range(10))
     model = SandNet.Model(G, threshold_rule = "fixed", threshold = 5)
-    assert(model.network.nodes[np.random.randint(0, 10)]["grains"] == 0)
+    assert(model.get_network().nodes[np.random.randint(0, 10)]["grains"] == 0)
 
 
 def test_random_grains():
@@ -92,9 +92,9 @@ def test_random_grains():
     G.add_edges_from([(0, 1), (1, 2), (1, 3)])
     model = SandNet.Model(G, threshold_rule= "degree", initial_grains="random")
 
-    assert(model.network.nodes[0]["grains"] == 0)
-    assert(model.network.nodes[2]["grains"] == 0)
-    assert(model.network.nodes[3]["grains"] == 0)
+    assert(model.get_network().nodes[0]["grains"] == 0)
+    assert(model.get_network().nodes[2]["grains"] == 0)
+    assert(model.get_network().nodes[3]["grains"] == 0)
 
 
 def test_wrong_initial_grains_input():
@@ -124,7 +124,7 @@ def test_fixed_threshold():
     G=nx.Graph()
     G.add_nodes_from(range(10))
     model = SandNet.Model(G, threshold_rule = "fixed", threshold = 5)
-    assert(model.network.nodes[np.random.randint(0, 10)]["threshold"] == 5)
+    assert(model.get_network().nodes[np.random.randint(0, 10)]["threshold"] == 5)
 
 
 def test_fixed_threshold_lower_than_one():
@@ -152,8 +152,8 @@ def test_degree_threshold():
     G.add_nodes_from(range(3))
     G.add_edges_from([(0, 1), (1, 2)])
     model = SandNet.Model(G, threshold_rule = "degree")
-    assert(model.network.nodes[1]["threshold"]==2) #central node
-    assert(model.network.nodes[0]["threshold"]==1) #one of the side nodes
+    assert(model.get_network().nodes[1]["threshold"]==2) #central node
+    assert(model.get_network().nodes[0]["threshold"]==1) #one of the side nodes
 
 
 def test_incorrect_rule_input():
@@ -177,12 +177,14 @@ def test_index_setting():
     THEN: the node indexes range from 0 to N-1
     '''
     model = SandNet.Model(N=6)
-    indexes = list(dict(model.network.nodes(data="index", default=0)).values()) #gives a list of all the index values
+    indexes = list(dict(model.get_network().nodes(data="index", default=0)).values()) #gives a list of all the index values
 
     #compare using collections.Counter to have comparison independent from order
     assert(Counter(indexes) == Counter(range(36)))
 
+
 #Testing selection node by index
+
 
 def test_generic_index_selection():
     '''
@@ -236,7 +238,7 @@ def test_generic_degree_selection():
     G.add_nodes_from(range(4))
     G.add_edges_from([(0, 1), (1, 2), (1, 3)])
     model = SandNet.Model(network=G, threshold_rule='degree')
-    correct_index = model.network.nodes[1]["index"] #get the index of the node of degree 3 for the test
+    correct_index = model.get_network().nodes[1]["index"] #get the index of the node of degree 3 for the test
 
     retrieved_index = model.select_nodes_by_degree(3)
     assert(retrieved_index==[correct_index]) #select_node_by_degree returns a list, not an integer
@@ -281,6 +283,24 @@ def test_correct_node_count():
     '''
     model = SandNet.Model()
     assert(model.get_number_of_nodes() == 25)
+
+
+# Testing count of total number of grains
+
+
+def test_total_number_of_grains():
+    '''
+    Tests the correct retrieval of the total number of grains in a sandpile model network
+
+    GIVEN: a sandpile model on a 3 x 3 square grid, with two grains on a node and one grain on all the others
+    WHEN: I get the total number of grains in the system
+    THEN: I obtain 10
+    '''
+    model = SandNet.Model(N = 3, initial_grains='zero')
+    model.change_grains(index = 3, grains = 2)
+    model.change_grains(index = [0, 1, 2, 4, 5, 6, 7, 8], grains = 1)
+    
+    assert(model.get_total_grains() == 10)
 
 
 #Testing node features retrieval
@@ -392,11 +412,11 @@ def test_standard_creation_of_boundaries():
     model = SandNet.Model(G, threshold=2)
     model.add_boundaries(n_boundaries=2)
 
-    assert(model.network.nodes[0]["threshold"] == 2)
-    assert(model.network.nodes[1]["threshold"] == 2)
-    assert(model.network.nodes[2]["threshold"] == 2)
-    assert(model.network.nodes[3]["threshold"] == 3)
-    assert(model.network.nodes[4]["threshold"] == 3)
+    assert(model.get_network().nodes[0]["threshold"] == 2)
+    assert(model.get_network().nodes[1]["threshold"] == 2)
+    assert(model.get_network().nodes[2]["threshold"] == 2)
+    assert(model.get_network().nodes[3]["threshold"] == 3)
+    assert(model.get_network().nodes[4]["threshold"] == 3)
 
 
 # Test threshold and number of grains modification
@@ -412,8 +432,8 @@ def test_change_threshold():
     '''
     model = SandNet.Model(N = 3)
     model.change_threshold([0, 4], 5) #correspond to nodes (0, 0) and (1, 1)
-    assert(model.network.nodes[(0, 0)]["threshold"] == 5)
-    assert(model.network.nodes[(1, 1)]["threshold"] == 5)
+    assert(model.get_network().nodes[(0, 0)]["threshold"] == 5)
+    assert(model.get_network().nodes[(1, 1)]["threshold"] == 5)
 
 
 def test_change_number_of_grains():
@@ -426,7 +446,7 @@ def test_change_number_of_grains():
     '''
     model = SandNet.Model(N = 3)
     model.change_grains(index = 4, grains = 3) #4 is the index of the central node
-    assert(model.network.nodes[(1, 1)]["grains"] == 3)
+    assert(model.get_network().nodes[(1, 1)]["grains"] == 3)
 
 
 def test_wrong_new_number_of_grains():
@@ -458,7 +478,7 @@ def test_node_removal():
     model = SandNet.Model(N = 3)
     model.remove_nodes_by_index(model.select_nodes_by_degree(2))
 
-    assert(len(model.network.nodes) == 5)
+    assert(len(model.get_network().nodes) == 5)
     assert(len(model.select_nodes_by_degree(4)) == 1)
     assert(len(model.select_nodes_by_degree(1)) == 4)
 
@@ -476,23 +496,4 @@ def test_index_assignment_after_node_removal():
     model = SandNet.Model(G)
     model.remove_nodes_by_index([1])
 
-    assert(model.network.nodes[2]["index"] == 1)
-
-
-# Testing count of total number of grains
-
-
-def test_total_number_of_grains():
-    '''
-    Tests the correct retrieval of the total number of grains in a sandpile model network
-
-    GIVEN: a sandpile model on a 3 x 3 square grid, with two grains on a node and one grain on all the others
-    WHEN: I get the total number of grains in the system
-    THEN: I obtain 10
-    '''
-    model = SandNet.Model(N = 3, initial_grains='zero')
-    model.change_grains(index = 3, grains = 2)
-    for index in [0, 1, 2, 4, 5, 6, 7, 8]:
-        model.change_grains(index = index, grains = 1)
-    
-    assert(model.get_total_grains() == 10)
+    assert(model.get_network().nodes[2]["index"] == 1)

@@ -109,8 +109,8 @@ def test_equivalence_simplex_and_multiplex_evolution():
     multiplex.evolve_together(5000, together = True, evolve_mode = 'fixed', position = 12, avalanche_matrix=True)
 
     assert(nx.utils.graphs_equal(model.network, multiplex.get_model(index = 0).network))
-    assert(model.avalanche_sizes_collector == multiplex.get_model(index = 0).avalanche_sizes_collector)
-    assert(model.avalanche_areas_collector == multiplex.get_model(index = 0).avalanche_areas_collector)
+    assert(model.get_avalanche_sizes() == multiplex.get_model(index = 0).get_avalanche_sizes())
+    assert(model.get_avalanche_areas() == multiplex.get_model(index = 0).get_avalanche_areas())
 
 
 def test_equivalence_simplex_and_multiplex_evolution_without_propagation():
@@ -133,8 +133,8 @@ def test_equivalence_simplex_and_multiplex_evolution_without_propagation():
     multiplex.evolve_together(5000, together = False, evolve_mode = 'fixed', position = 12, avalanche_matrix=True)
 
     assert(nx.utils.graphs_equal(model.network, multiplex.get_model(index = 0).network))
-    assert(model.avalanche_sizes_collector == multiplex.get_model(index = 0).avalanche_sizes_collector)
-    assert(model.avalanche_areas_collector == multiplex.get_model(index = 0).avalanche_areas_collector)
+    assert(model.get_avalanche_sizes() == multiplex.get_model(index = 0).get_avalanche_sizes())
+    assert(model.get_avalanche_areas() == multiplex.get_model(index = 0).get_avalanche_areas())
 
 
 # Testing multiplex evolution
@@ -157,8 +157,8 @@ def test_propagation_of_the_avalanche():
     multiplex = SandNet.Multiplex([model_1, model_2], ["first", "second"])
     multiplex.evolve_together(1, together = True, evolve_mode='fixed', position = 4)
 
-    assert(multiplex.get_model(name = "first").network.nodes[(1, 1)]["grains"] == 0)
-    assert(multiplex.get_model(name = "second").network.nodes[(1, 1)]["grains"] == 0)
+    assert(multiplex.get_model(name = "first").get_node_grains(4) == 0)
+    assert(multiplex.get_model(name = "second").get_node_grains(4) == 0)
 
 
 def test_isolation_of_the_avalanche():
@@ -179,8 +179,8 @@ def test_isolation_of_the_avalanche():
     multiplex = SandNet.Multiplex([model_1, model_2], ["first", "second"])
     multiplex.evolve_together(1, together = False, evolve_mode='fixed', position = 4)
 
-    grains_first_layer = multiplex.get_model(name = "first").network.nodes[(1, 1)]["grains"]
-    grains_second_layer = multiplex.get_model(name = "second").network.nodes[(1, 1)]["grains"]
+    grains_first_layer = multiplex.get_model(name = "first").get_node_grains(4)
+    grains_second_layer = multiplex.get_model(name = "second").get_node_grains(4)
 
     assert(grains_first_layer + grains_second_layer == 3)
 
@@ -204,7 +204,7 @@ def test_toppling_with_grains_lower_than_threshold():
     model_1.change_grains(index = 4, grains = 3)
     model_2 = SandNet.Model(N = 3, initial_grains='zero')
     model_2.change_grains(index = 4, grains = 3)
-    model_2.change_threshold(indexes = [4], threshold = 1000)
+    model_2.change_threshold(index = [4], threshold = 1000)
     multiplex = SandNet.Multiplex([model_1, model_2], ["first", "second"], seed = 42)
 
     multiplex.evolve_together(100, together = True, evolve_mode='fixed', position = 4)
@@ -231,14 +231,13 @@ def test_toppling_with_zero_grains():
     '''
     model = SandNet.Model(N = 3, initial_grains= 'zero')
 
-    for index in [0, 1, 2, 3, 5, 6, 7, 8]:
-        model.change_grains(index = index, grains = 3)
-    #change the threshold of all nodes except for the central one
+    model.change_grains(index = [0, 1, 2, 3, 5, 6, 7, 8], grains = 3)
+    #change the threshold of all nodes except for the central one (index 4)
     
     model._avalanche(model.select_node_by_index(4), lose_probability = None, step = 0, avalanche_matrix = False)
 
-    assert(model.network.nodes[(1, 1)]["grains"] == 0)
-    assert(model.network.nodes[(0, 1)]["grains"] == 3)
+    assert(model.get_node_grains(4) == 0)
+    assert(model.get_node_grains(2) == 3)
     assert(model.avalanche_size == 0)
     assert(model.avalanche_area == 0)
 
@@ -260,14 +259,13 @@ def test_generic_case_of_multiplex_evolution():
     In the third layer nothing happens, so avalanche size and area are 0, as well as the grains on each node
     '''
     model_1 = SandNet.Model(N = 3)
-    for index in range(9):
-        model_1.change_grains(index = index, grains = 3)
+    model_1.change_grains(index = list(range(9)), grains = 3)
     
     G = nx.Graph()
     G.add_nodes_from(range(9))
     G.add_edges_from([(0, 4), (1, 4), (2, 4), (3, 4), (5, 4), (6, 4), (7, 4)])
     model_2 = SandNet.Model(G, threshold = 1)
-    model_2.change_threshold(indexes = [4], threshold = 8)
+    model_2.change_threshold(index = 4, threshold = 8)
     model_2.change_grains(index = 4, grains = 7)
 
     model_3 = SandNet.Model(N = 3)
@@ -275,22 +273,22 @@ def test_generic_case_of_multiplex_evolution():
     multiplex = SandNet.Multiplex([model_1, model_2, model_3], ["first", "second", "third"])
     multiplex.evolve_together(1, together = True, evolve_mode='fixed', position = 4, layer = 0, avalanche_matrix=True)
 
-    assert(model_1.avalanche_sizes_collector[0] == 10)
-    assert(model_1.avalanche_areas_collector[0] == 9)
-    assert(model_1.avalanche_matrix[0, 4] == 2)
-    assert(model_1.avalanche_matrix[0, 0] == 1)
+    assert(model_1.get_avalanche_sizes()[0] == 10)
+    assert(model_1.get_avalanche_areas()[0] == 9)
+    assert(model_1.get_avalanche_matrix()[0, 4] == 2)
+    assert(model_1.get_avalanche_matrix()[0, 0] == 1)
     assert(model_1.get_total_grains() == 16)
 
-    assert(model_2.avalanche_sizes_collector[0] == 16)
-    assert(model_2.avalanche_areas_collector[0] == 8)
-    assert(model_2.avalanche_matrix[0, 4] == 2)
-    assert(model_2.avalanche_matrix[0, 0] == 2)
-    assert(model_2.avalanche_matrix[0, 8] == 0)
+    assert(model_2.get_avalanche_sizes()[0] == 16)
+    assert(model_2.get_avalanche_areas()[0] == 8)
+    assert(model_2.get_avalanche_matrix()[0, 4] == 2)
+    assert(model_2.get_avalanche_matrix()[0, 0] == 2)
+    assert(model_2.get_avalanche_matrix()[0, 8] == 0)
     assert(model_2.get_total_grains() == 7)
-    assert(model_2.network.nodes[model_2.select_node_by_index(4)]["grains"] == 7)
+    assert(model_2.get_node_grains(4) == 7)
     
-    assert(model_3.avalanche_sizes_collector[0] == 0)
-    assert(model_3.avalanche_areas_collector[0] == 0)
+    assert(model_3.get_avalanche_sizes()[0] == 0)
+    assert(model_3.get_avalanche_areas()[0] == 0)
     assert(model_3.get_total_grains() == 0)
 
 

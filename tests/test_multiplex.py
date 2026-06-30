@@ -11,6 +11,7 @@ __email__=['riccardograndicelli03@gmail.com']
 
 # Testing initialization of multiplex network model
 
+
 def test_networks_with_different_length():
     '''
     Tests the raise of a ValueError when the sandpile models provided as input for the multiplex model initialization
@@ -51,7 +52,7 @@ def test_multiplex_initialization():
     '''
     model = SandNet.Model()
     multiplex = SandNet.Multiplex([model, model, model, model, model])
-    assert(len(multiplex.all_models) == 5)
+    assert(len(multiplex.get_all_models()) == 5)
 
 
 def test_correct_name_initialization():
@@ -64,7 +65,7 @@ def test_correct_name_initialization():
     '''
     model = SandNet.Model()
     multiplex = SandNet.Multiplex([model, model, model], ["a", "b"])
-    assert(multiplex.model_names["b"] == 1)
+    assert(multiplex.get_model_names()["b"] == 1)
 
 
 # Test retrieve and change of current model
@@ -153,10 +154,10 @@ def test_addition_of_new_model():
     '''
     model = SandNet.Model(N = 3)
     multiplex = SandNet.Multiplex([model, model, model])
-    assert(len(multiplex.all_models) == 3)
+    assert(len(multiplex.get_all_models()) == 3)
 
     multiplex.add_model(model)
-    assert(len(multiplex.all_models) == 4)
+    assert(len(multiplex.get_all_models()) == 4)
 
 
 def test_addition_in_last_position():
@@ -192,7 +193,7 @@ def test_name_of_new_added_model():
     multiplex = SandNet.Multiplex([model, model, model])
 
     multiplex.add_model(model, name = "a")
-    assert(multiplex.model_names["a"]  == 3)
+    assert(multiplex.get_model_names()["a"]  == 3)
 
 
 def test_addition_of_network_with_different_number_of_nodes():
